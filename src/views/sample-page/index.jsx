@@ -145,7 +145,7 @@ const SamplePage = () => {
               rows={4}
               sx={{
                 backgroundColor: "#F2ECF5",
-                maxWidth: "650px",
+                maxWidth: "600px",
                 height: "100%",
                 marginTop: "-115px",  // Ajusta este valor si necesitas moverlo más arriba
               }}
@@ -236,26 +236,54 @@ const SamplePage = () => {
             >
               <FormControlLabel value="Interior" control={<Radio />} label="Interior" />
               <FormControlLabel value="Exterior" control={<Radio />} label="Exterior" />
-            </RadioGroup>
-          </FormControl>
+              </RadioGroup>
+              </FormControl>
 
           {/* Input File */}
-          <FormControl fullWidth sx={{ marginTop: 2 }}>
-            <Button
-              variant="outlined"
-              component="label"
-              sx={{ textTransform: "none", width: "auto" }}
-            >
-              Subir archivo
-              <input
-                type="file"
-                hidden
-                onChange={handleFileChange}
-              />
-            </Button>
+          <FormControl 
+         sx={{ 
+          marginTop: 2, 
+         width: "80%", 
+         display: "flex", 
+         justifyContent: "flex-end",
+        alignItems: "flex-end" 
+           }}
+         > 
+         <Button
+         variant="outlined"
+         component="label"
+          sx={{ 
+         textTransform: "none", 
+         width: "100%",  // Hace que el botón ocupe todo el ancho del FormControl
+          maxWidth: "590px", // Ajusta el ancho máximo del botón
+          padding: "10px 12px", // Aumenta el padding para hacerlo más grande
+           fontSize: "1rem" // Hace el texto un poco más grande
+        }}
+          >
+           Subir archivo
+           <input type="file" hidden onChange={handleFileChange} />
+          </Button>
           </FormControl>
-        </Grid>
-      </MainCard>
+           {/* Botón Guardar */}
+           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "40px", width: "100%" }}>
+            <Button
+           variant="contained"
+           sx={{
+            backgroundColor: "#060336",
+            color: "white",
+            padding: "10px 50px", // Ajusta el padding como desees
+           fontSize: "1.2rem",
+           borderRadius: "60px",
+            width: "auto", // Deja que el ancho sea automático
+            maxWidth: "300px", // Limita el máximo ancho del botón
+           }}
+           >
+            Siguiente 
+             </Button>
+            </div>
+
+          </Grid>
+       </MainCard>
     </Box>
   );
 };
