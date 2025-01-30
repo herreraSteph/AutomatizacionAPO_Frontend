@@ -13,7 +13,8 @@ const UtilsColor = Loadable(lazy(() => import('views/utilities/Color')));
 const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 // const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 // const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
-
+const CrearNumero = Loadable(lazy(() => import('views/Proyectos/CrearNumero')));
+const Cronograma = Loadable(lazy(() => import('views/Proyectos/Cronograma')));
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 
@@ -84,6 +85,19 @@ const MainRoutes = {
     {
       path: 'sample-page',
       element: <SamplePage />
+    },
+    {
+      path: 'proyectos',
+      children: [
+        {
+          path: 'crear-numero',
+          element: <CrearNumero />
+        },
+        {
+          path: 'cronograma',
+          element: <Cronograma />
+        }
+      ]
     }
   ]
 };

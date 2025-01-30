@@ -2303,6 +2303,11 @@ dequal@^2.0.3:
   resolved "https://registry.npmjs.org/dequal/-/dequal-2.0.3.tgz"
   integrity sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA==
 
+dhtmlx-gantt@^9.0.3:
+  version "9.0.3"
+  resolved "https://registry.npmjs.org/dhtmlx-gantt/-/dhtmlx-gantt-9.0.3.tgz"
+  integrity sha512-bc6ypBpp1XdE9s7iop5j+O41gLcfxg1nAerV1wHcmG11NxpYI5iOmSAAzdLfC8wqCnIOYQhRz7ca2t4KURFJhQ==
+
 dir-glob@^3.0.1:
   version "3.0.1"
   resolved "https://registry.npmjs.org/dir-glob/-/dir-glob-3.0.1.tgz"
