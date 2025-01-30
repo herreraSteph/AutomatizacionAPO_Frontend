@@ -1,17 +1,34 @@
-// assets
+
+import  AddIcon  from '@mui/icons-material/Add';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PlagiarismIcon from '@mui/icons-material/Plagiarism';
-// constant
 const icons = {
+  AddIcon,
+  AccessTimeIcon,
   PlagiarismIcon
 };
-
-// ==============================|| UTILITIES MENU ITEMS ||============================== //
 
 const proyectos = {
   id: 'proyectos',
   title: 'Proyectos',
   type: 'group',
   children: [
+    {
+      id: 'crear-numero',
+      title: 'Crear Numero',
+      type: 'item',
+      url: '/proyectos/crear-numero',
+      icon: icons.AddIcon,
+      breadcrumbs: false
+    },
+    {
+      id: 'cronograma',
+      title: 'Cronograma',
+      type: 'item',
+      url: '/proyectos/cronograma',
+      icon: icons.AccessTimeIcon,
+      breadcrumbs: false
+    },
     {
       id: 'descripcionmaterial',
       title: 'Descripción de Material',

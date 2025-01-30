@@ -1,0 +1,20 @@
+.nivel-0 .gantt_task_content {
+    background-color: #4CAF50 !important; /* Verde */
+    color: white;
+  }
+  
+  .nivel-1 .gantt_task_content {
+    background-color: #2196F3 !important; /* Azul */
+    color: white;
+  }
+  
+  .nivel-2 .gantt_task_content {
+    background-color: #FF9800 !important; /* Naranja */
+    color: white;
+  }
+  
+  .nivel-otros .gantt_task_content {
+    background-color: #9C27B0 !important; /* Morado */
+    color: white;
+  }
+  
