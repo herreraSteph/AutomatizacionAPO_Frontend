@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+import { element } from 'prop-types';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -17,6 +18,7 @@ const CrearNumero = Loadable(lazy(() => import('views/Proyectos/CrearNumero')));
 const Cronograma = Loadable(lazy(() => import('views/Proyectos/Cronograma')));
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+const DescripcionMaterial = Loadable(lazy(() => import('views/Proyectos/DescripcionMaterial')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -96,6 +98,10 @@ const MainRoutes = {
         {
           path: 'cronograma',
           element: <Cronograma />
+        },
+        {
+          path: 'DescripcionMaterial',
+          element : <DescripcionMaterial />
         }
       ]
     }
