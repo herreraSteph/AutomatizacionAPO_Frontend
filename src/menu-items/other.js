@@ -13,10 +13,10 @@ const other = {
    
     {
       id: 'documentation',
-      title: 'Documentation',
+      title: '',
       type: 'item',
-      url: 'https://codedthemes.gitbook.io/berry/',
-      icon: icons.IconHelp,
+      url: '',
+    
       external: true,
       target: true
     },

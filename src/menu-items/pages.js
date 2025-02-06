@@ -10,13 +10,13 @@ const icons = {
 
 const pages = {
   id: 'pages',
-  title: 'Pages',
+  title: '',
   caption: 'Pages Caption',
   type: 'group',
   children: [
     {
       id: 'authentication',
-      title: 'Authentication',
+      title: 'Login & Register',
       type: 'collapse',
       icon: icons.IconKey,
 
