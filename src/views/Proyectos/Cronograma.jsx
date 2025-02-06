@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import gantt from "dhtmlx-gantt";
 import MainCard from "ui-component/cards/MainCard";
+import { Button } from "@mui/material"; // Asegúrate de importar Button
 import "../../assets/css/cronograma.css"; // Archivo CSS para colores
 
 const Cronograma = () => {
@@ -93,7 +94,37 @@ const Cronograma = () => {
   }, []);
 
   return (
-    <MainCard title="Cronograma">
+    <MainCard
+      title={
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span>Cronograma</span>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <Button
+              variant="contained"
+              sx={{
+                borderRadius: "20px", // Bordes redondeados
+                padding: "10px 20px",
+                backgroundColor: "#060336",
+                color: "white"
+              }}
+            >
+              Siguiente
+            </Button>
+            <Button
+              variant="outlined"
+              sx={{
+                borderRadius: "20px", // Bordes redondeados
+                padding: "10px 20px",
+                borderColor: "#060336",
+                color: "#060336"
+              }}
+            >
+              Descargar
+            </Button>
+          </div>
+        </div>
+      }
+    >
       <div ref={ganttContainer} style={{ width: "100%", height: "400px" }} />
     </MainCard>
   );

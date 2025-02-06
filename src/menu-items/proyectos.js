@@ -2,10 +2,12 @@
 import  AddIcon  from '@mui/icons-material/Add';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PlagiarismIcon from '@mui/icons-material/Plagiarism';
+import GradingIcon from '@mui/icons-material/Grading';
 const icons = {
   AddIcon,
   AccessTimeIcon,
-  PlagiarismIcon
+  PlagiarismIcon,
+  GradingIcon
 };
 
 const proyectos = {
@@ -21,20 +23,21 @@ const proyectos = {
       icon: icons.AddIcon,
       breadcrumbs: false
     },
-    {
-      id: 'cronograma',
-      title: 'Cronograma',
-      type: 'item',
-      url: '/proyectos/cronograma',
-      icon: icons.AccessTimeIcon,
-      breadcrumbs: false
-    },
+
     {
       id: 'descripcionmaterial',
       title: 'Descripción de Material',
       type: 'item',
       url: '/proyectos/descripcionmaterial',
       icon: icons.PlagiarismIcon,
+      breadcrumbs: false
+    },
+    {
+      id: 'CPC',
+      title: 'Control de Pedido del Cliente',
+      type: 'item',
+      url: '/proyectos/CPC',
+      icon: icons.GradingIcon,
       breadcrumbs: false
     }
   ]
