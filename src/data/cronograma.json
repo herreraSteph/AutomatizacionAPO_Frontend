@@ -1,0 +1,160 @@
+{
+  "data": [
+    {
+      "id": 1738348885394,
+      "start_date": "30-01-2025 00:00",
+      "text": "SM24-1084 ADECUACION CV-1004",
+      "duration": 40,
+      "end_date": "11-03-2025 00:00",
+      "progress": 0,
+      "parent": 0,
+      "cantidad": "2",
+      "unidad": "pzas"
+    },
+    {
+      "id": 1738348885403,
+      "start_date": "30-01-2025 00:00",
+      "text": "Ingenieria",
+      "duration": 26,
+      "parent": "1738348885394",
+      "end_date": "25-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "2",
+      "unidad": "pzas"
+    },
+    {
+      "id": 1738348885412,
+      "start_date": "30-01-2025 00:00",
+      "text": "Ingenieria",
+      "duration": 4,
+      "parent": "1738348885403",
+      "end_date": "03-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "1",
+      "unidad": "lote"
+    },
+    {
+      "id": 1738348885421,
+      "start_date": "30-01-2025 00:00",
+      "text": "Ingenieria",
+      "duration": 4,
+      "parent": "1738348885412",
+      "end_date": "03-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "1",
+      "unidad": "act"
+    },
+    {
+      "id": 1738348885430,
+      "start_date": "02-02-2025 00:00",
+      "text": "Procura",
+      "duration": 9,
+      "parent": "1738348885394",
+      "end_date": "11-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "2",
+      "unidad": "pzas"
+    },
+    {
+      "id": 1738348885439,
+      "start_date": "02-02-2025 00:00",
+      "text": "Procura",
+      "duration": 9,
+      "parent": "1738348885430",
+      "end_date": "11-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "1",
+      "unidad": "lote"
+    },
+    {
+      "id": 1738348885448,
+      "start_date": "02-02-2025 00:00",
+      "text": "Procura de materiales",
+      "duration": 9,
+      "parent": "1738348885439",
+      "end_date": "11-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "1",
+      "unidad": "act"
+    },
+    {
+      "id": 1738348885457,
+      "start_date": "06-02-2025 00:00",
+      "text": "Fabricacion",
+      "duration": 19,
+      "parent": "1738348885394",
+      "end_date": "25-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "2",
+      "unidad": "pzas"
+    },
+    {
+      "id": 1738348885466,
+      "start_date": "06-02-2025 00:00",
+      "text": "REFORZAMIENTO ESTRUCTURA CV-2004",
+      "duration": 5,
+      "parent": "1738348885457",
+      "end_date": "11-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "1",
+      "unidad": "lote"
+    },
+    {
+      "id": 1738348885475,
+      "start_date": "06-02-2025 00:00",
+      "text": "PREFABRICACION DE ANILLOS DE REFUERZO",
+      "duration": 5,
+      "parent": "1738348885466",
+      "end_date": "11-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "7",
+      "unidad": "pzas"
+    },
+    {
+      "id": 1738348885484,
+      "start_date": "06-02-2025 00:00",
+      "text": "PREFABRICACION DE COLUMNAS DE REFEURZO DE ANILLOS ",
+      "duration": 5,
+      "parent": "1738348885466",
+      "end_date": "11-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "24",
+      "unidad": "pzas"
+    },
+    {
+      "id": 1738348885493,
+      "start_date": "06-02-2025 00:00",
+      "text": "COLUMNAS EN ESTRUCTURA DE CICLON\nINCLUYEN PLACAS DE CONEXIÓN Y MENSULAS CV-1,4,3,2,1",
+      "duration": 5,
+      "parent": "1738348885457",
+      "end_date": "11-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "12",
+      "unidad": "pzas"
+    },
+    {
+      "id": 1738348885502,
+      "start_date": "06-02-2025 00:00",
+      "text": "HABILITADO",
+      "duration": 4,
+      "parent": "1738348885493",
+      "end_date": "10-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "2",
+      "unidad": "pzas"
+    },
+    {
+      "id": 1738348885511,
+      "start_date": "07-02-2025 00:00",
+      "text": "Prearmado",
+      "duration": 4,
+      "parent": "1738348885493",
+      "end_date": "11-02-2025 00:00",
+      "progress": 0,
+      "cantidad": "2",
+      "unidad": "pzas"
+    }
+  ],
+  "links": [],
+  "baselines": []
+}
