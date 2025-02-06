@@ -46,9 +46,39 @@ const DescripcionMaterial = () => {
         </TableContainer>
 
         {/* Botón Guardar */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "40px" }}>
-          <Button variant="contained" sx={{ backgroundColor: "#060336", color: "white", padding: "16px 40px", fontSize: "1rem", borderRadius: "30px", width: "20%" }}>Guardar</Button>
-        </div>
+       {/* Botón Guardar y Descargar */}
+<div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "40px" }}>
+  {/* Botón Guardar */}
+  <Button
+    variant="contained"
+    sx={{
+      backgroundColor: "#060336", // Color azul marino
+      color: "white",
+      padding: "8px 20px", // Haciendo el botón más delgado
+      fontSize: "0.9rem", // Reducir el tamaño de la fuente
+      borderRadius: "20px", // Bordes redondeados
+      width: "auto", // Ajuste automático del ancho
+    }}
+  >
+    Guardar
+  </Button>
+
+  {/* Botón Descargar */}
+  <Button
+    variant="outlined"
+    sx={{
+      borderColor: "#060336", // Borde azul marino
+      color: "#060336", // Texto azul marino
+      padding: "8px 20px", // Haciendo el botón más delgado
+      fontSize: "0.9rem", // Reducir el tamaño de la fuente
+      borderRadius: "20px", // Bordes redondeados
+      width: "auto", // Ajuste automático del ancho
+    }}
+  >
+    Descargar
+  </Button>
+</div>
+
       </Paper>
     </div>
   );
