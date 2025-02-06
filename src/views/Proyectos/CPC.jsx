@@ -89,7 +89,7 @@ const CPC = () => {
               defaultValue="SM-001"
               variant="outlined"
               sx={{
-                backgroundColor: "#F2ECF5",
+                backgroundColor: "#fffff",
                 "& .MuiInputBase-input": { textAlign: "center", color: "red", fontSize: "1.2rem" },
               }}
             />
@@ -101,7 +101,7 @@ const CPC = () => {
               fullWidth
               label="Tipo de Acabados"
               variant="outlined"
-              sx={{ backgroundColor: "#F2ECF5" }}
+              sx={{ backgroundColor: "#fffff" }}
             />
           </Grid>
 
@@ -152,7 +152,7 @@ const CPC = () => {
               multiline
               rows={4}
               sx={{
-                backgroundColor: "#F2ECF5",
+                backgroundColor: "#fffff",
                 maxWidth: "400px",
                 height: "100%",
                 marginTop: "-115px",  // Ajusta este valor si necesitas moverlo más arriba

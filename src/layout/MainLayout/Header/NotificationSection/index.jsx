@@ -149,7 +149,7 @@ const NotificationSection = () => {
                       <Grid container alignItems="center" justifyContent="space-between" sx={{ pt: 2, px: 2 }}>
                         <Grid item>
                           <Stack direction="row" spacing={2}>
-                            <Typography variant="subtitle1">All Notification</Typography>
+                            <Typography variant="subtitle1"> Noctificaciones</Typography>
                             <Chip
                               size="small"
                               label="01"
@@ -161,9 +161,7 @@ const NotificationSection = () => {
                           </Stack>
                         </Grid>
                         <Grid item>
-                          <Typography component={Link} to="#" variant="subtitle2" color="primary">
-                            Mark as all read
-                          </Typography>
+                         
                         </Grid>
                       </Grid>
                     </Grid>
@@ -200,9 +198,7 @@ const NotificationSection = () => {
                   </Grid>
                   <Divider />
                   <CardActions sx={{ p: 1.25, justifyContent: 'center' }}>
-                    <Button size="small" disableElevation>
-                      View All
-                    </Button>
+                    
                   </CardActions>
                 </MainCard>
               </ClickAwayListener>

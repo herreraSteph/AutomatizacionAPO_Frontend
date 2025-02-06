@@ -45,8 +45,17 @@ const CrearNumero = () => (
         </TextField>
       </Grid>
       <Grid item xs={12} sm={3}>
-        <Button fullWidth variant="contained" color="primary">Submit</Button>
-      </Grid>
+  <Button 
+    fullWidth 
+    variant="contained" 
+    color="primary" 
+    sx={{
+      borderRadius: "50px", // Bordes redondeados
+    }}
+  >
+    Aceptar
+  </Button>
+</Grid>
     </Grid>
   </MainCard>
 );
