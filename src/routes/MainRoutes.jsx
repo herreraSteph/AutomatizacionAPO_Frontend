@@ -19,6 +19,7 @@ const Cronograma = Loadable(lazy(() => import('views/Proyectos/Cronograma')));
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const DescripcionMaterial = Loadable(lazy(() => import('views/Proyectos/DescripcionMaterial')));
+const CPC = Loadable(lazy(() => import('views/Proyectos/CPC')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -66,24 +67,7 @@ const MainRoutes = {
         }
       ]
     },
-    // {
-    //   path: 'icons',
-    //   children: [
-    //     {
-    //       path: 'tabler-icons',
-    //       element: <UtilsTablerIcons />
-    //     }
-    //   ]
-    // },
-    // {
-    //   path: 'icons',
-    //   children: [
-    //     {
-    //       path: 'material-icons',
-    //       element: <UtilsMaterialIcons />
-    //     }
-    //   ]
-    // },
+   
     {
       path: 'sample-page',
       element: <SamplePage />
@@ -102,6 +86,10 @@ const MainRoutes = {
         {
           path: 'DescripcionMaterial',
           element : <DescripcionMaterial />
+        },
+        {
+          path: 'CPC',
+          element : <CPC />
         }
       ]
     }
