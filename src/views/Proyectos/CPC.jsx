@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import GradingIcon from '@mui/icons-material/Grading';
 import {
@@ -39,10 +39,20 @@ const CPC = () => {
   const [placement, setPlacement] = useState("");
   const [edificio, setEdificio] = useState("");
   const [equipoReferencia, setEquipoReferencia] = useState("");
+  const [condicionSeguridad, setCondicionSeguridad] = useState("");
   const [seguridadSeleccionada, setSeguridadSeleccionada] = useState("");
-  const [file, setFile] = useState(null); // Para manejar el archivo cargado
+  const [file, setFile] = useState(null);
+  const [numeros, setNumeros] = useState([]);
+  const [selectedNumero, setSelectedNumero] = useState("");
+  const [tipoAcabado, setTipoAcabado] = useState("");  // Estado para Tipo de Acabado
+  const [descripcion, setDescripcion] = useState("");  // Estado para Descripción
 
-  const navigate = useNavigate(); // Hook para la navegación
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedNumeros = JSON.parse(localStorage.getItem("numeros")) || [];
+    setNumeros(storedNumeros);
+  }, []);
 
   const handleSelection = (event, newSelection) => {
     setSelected(newSelection);
@@ -60,6 +70,10 @@ const CPC = () => {
     setEquipoReferencia(event.target.value);
   };
 
+  const handleCondicionSeguridadChange = (event) => {
+    setCondicionSeguridad(event.target.value);
+  };
+
   const handleSeguridadChange = (event) => {
     setSeguridadSeleccionada(event.target.value);
   };
@@ -68,31 +82,57 @@ const CPC = () => {
     const uploadedFile = event.target.files[0];
     if (uploadedFile) {
       setFile(uploadedFile);
-      console.log("Archivo seleccionado:", uploadedFile.name);
     }
   };
 
-  const handleNext = () => {
-    navigate('/proyectos/cronograma'); // Redirección a la página Cronograma
+  const handleTipoAcabadoChange = (event) => {
+    setTipoAcabado(event.target.value);
+  };
+
+  const handleDescripcionChange = (event) => {
+    setDescripcion(event.target.value);
+  };
+
+  const handleSave = () => {
+    const formData = {
+      selectedNumero,
+      placement,
+      edificio,
+      equipoReferencia,
+      condicionSeguridad,
+      seguridadSeleccionada,
+      file,
+      selected,
+      tipoAcabado,  // Incluimos el Tipo de Acabado
+      descripcion,   // Incluimos la Descripción
+    };
+
+    // Guardamos el objeto en localStorage
+    localStorage.setItem("cpcData", JSON.stringify(formData));
+
+    // Navegar a la página de Cronograma
+    navigate('/proyectos/cronograma');
   };
 
   return (
     <Box sx={{ p: 2 }}>
-      {/* Primer Card: Creación de CPC */}
       <MainCard title="Creación de CPC" sx={{ textAlign: "center" }}>
         <Grid container spacing={2} alignItems="center">
-          {/* Floating Label para Nom. Act.O pry */}
+          {/* Select para Nom. Act.O pry */}
           <Grid item xs={6}>
-            <TextField
-              fullWidth
-              label="Nom. Act.O pry"
-              defaultValue="SM-001"
-              variant="outlined"
-              sx={{
-                backgroundColor: "#fffff",
-                "& .MuiInputBase-input": { textAlign: "center", color: "red", fontSize: "1.2rem" },
-              }}
-            />
+            <FormControl fullWidth variant="outlined">
+              <InputLabel>Nom. Act.O pry</InputLabel>
+              <Select
+                value={selectedNumero}
+                onChange={(event) => setSelectedNumero(event.target.value)}
+                label="Nom. Act.O pry"
+                sx={{ backgroundColor: "#fffff" }}
+              >
+                {numeros.map((num, index) => (
+                  <MenuItem key={index} value={num}>{num}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
 
           {/* Floating Label para Tipo de Acabados */}
@@ -101,6 +141,8 @@ const CPC = () => {
               fullWidth
               label="Tipo de Acabados"
               variant="outlined"
+              value={tipoAcabado}  // Valor de Tipo de Acabado
+              onChange={handleTipoAcabadoChange}  // Actualizamos el estado de Tipo de Acabado
               sx={{ backgroundColor: "#fffff" }}
             />
           </Grid>
@@ -151,6 +193,8 @@ const CPC = () => {
               variant="outlined"
               multiline
               rows={4}
+              value={descripcion}  // Valor de Descripción
+              onChange={handleDescripcionChange}  // Actualizamos el estado de Descripción
               sx={{
                 backgroundColor: "#fffff",
                 maxWidth: "400px",
@@ -162,7 +206,6 @@ const CPC = () => {
         </Grid>
       </MainCard>
 
-      {/* Segundo Card con tres Selects */}
       <MainCard title="Detalles Adicionales" sx={{ mt: 2 }}>
         <Grid container spacing={2}>
           {/* Placement Area */}
@@ -219,16 +262,16 @@ const CPC = () => {
           {/* Condición de Seguridad */}
           <Grid item xs={6}>
             <FormControl fullWidth variant="outlined">
-              <InputLabel>Condicion de Seguridad</InputLabel>
+              <InputLabel>Condición de Seguridad</InputLabel>
               <Select
-                value={equipoReferencia}
-                onChange={handleEquipoReferenciaChange}
-                label="Condicion de Seguridad"
+                value={condicionSeguridad}
+                onChange={handleCondicionSeguridadChange}
+                label="Condición de Seguridad"
                 sx={{ backgroundColor: "#F2ECF5" }}
               >
-                <MenuItem value={1}>Equipo X</MenuItem>
-                <MenuItem value={2}>Equipo Y</MenuItem>
-                <MenuItem value={3}>Equipo Z</MenuItem>
+                <MenuItem value={1}>Condición A</MenuItem>
+                <MenuItem value={2}>Condición B</MenuItem>
+                <MenuItem value={3}>Condición C</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -241,7 +284,7 @@ const CPC = () => {
               value={seguridadSeleccionada}
               onChange={handleSeguridadChange}
               row
-              sx={{ justifyContent: "flex-end", width: "60%" }} // Alineación a la derecha
+              sx={{ justifyContent: "flex-end", width: "60%" }}
             >
               <FormControlLabel value="Interior" control={<Radio />} label="Interior" />
               <FormControlLabel value="Exterior" control={<Radio />} label="Exterior" />
@@ -276,20 +319,12 @@ const CPC = () => {
 
           {/* Botón Guardar */}
           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px", width: "100%" }}>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "#060336",
-                color: "white",
-                padding: "8px 20px", 
-                fontSize: "0.9rem",
-                borderRadius: "20px",
-                width: "auto", 
-                
-              }}
-              onClick={handleNext} // Redirección al hacer clic
+            <Button 
+              variant="contained" 
+              onClick={handleSave} 
+              sx={{ backgroundColor: "#060336", width: "15%" }}
             >
-              Siguiente
+              Guardar
             </Button>
           </div>
         </Grid>
