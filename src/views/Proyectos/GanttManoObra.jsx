@@ -3,14 +3,14 @@ import Timeline from "react-calendar-timeline";
 import "react-calendar-timeline/dist/style.css";
 import moment from "moment";
 import indirecto from "../../data/Indirecto-items";
-import horas from "../../data/Taller-Cargill";
-import { Grid, TextField, MenuItem } from "@mui/material";
 
 const TimelineComponent = () => {
+  // Definir más grupos (columnas)
   const groups = [
-    { id: 1, title: "Indirecto" },
-    { id: 2, title: "Horas Taller" },
-    { id: 3, title: "Horas Cargill" },
+    ...indirecto.map((item, index) => ({
+      id: index + 1, // Asigna un id único para cada grupo
+      title: item.label, // Usamos el label como el título del grupo
+    }))
   ];
 
   const [items, setItems] = useState([
@@ -28,6 +28,21 @@ const TimelineComponent = () => {
       start_time: moment().startOf("day").add(1, "days").valueOf(),
       end_time: moment().startOf("day").add(2, "days").valueOf(),
     },
+    // Items en las nuevas columnas
+    {
+      id: 3,
+      group: 4, // Asignado a la columna extra 1
+      title: "3",
+      start_time: moment().startOf("day").subtract(1, "days").valueOf(),
+      end_time: moment().startOf("day").add(1, "days").valueOf(),
+    },
+    {
+      id: 4,
+      group: 5, // Asignado a la columna extra 2
+      title: "4",
+      start_time: moment().startOf("day").subtract(2, "days").valueOf(),
+      end_time: moment().startOf("day").add(2, "days").valueOf(),
+    },
   ]);
 
   const defaultTimeStart = moment().startOf("day").subtract(7, "days");
@@ -35,34 +50,6 @@ const TimelineComponent = () => {
 
   const [editingItemId, setEditingItemId] = useState(null);
   const [selectedItemId, setSelectedItemId] = useState(null);
-
-  const [comboBox1, setComboBox1] = useState("");
-  const [comboBox2, setComboBox2] = useState("");
-  const [dataForComboBox2, setDataForComboBox2] = useState([]);
-
-  useEffect(() => {
-    // Cambiar los datos según la opción seleccionada en comboBox1
-    if (comboBox1 === "indirecto") {
-      setDataForComboBox2(indirecto);
-    } else if (comboBox1 === "taller" || comboBox1 === "cargill") {
-      setDataForComboBox2(horas);
-    } else {
-      setDataForComboBox2([]);
-    }
-  }, [comboBox1]);
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Delete" || event.key === "Backspace") {
-        handleDeleteItem();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [selectedItemId]);
 
   const handleItemDoubleClick = (itemId) => {
     setEditingItemId(itemId);
@@ -142,43 +129,24 @@ const TimelineComponent = () => {
     }
   };
 
+  // Añadimos un useEffect para manejar la tecla Delete globalmente
+  useEffect(() => {
+    const handleDeleteKey = (e) => {
+      if (e.key === "Delete" && selectedItemId !== null) {
+        handleDeleteItem(); // Elimina el item si la tecla es "Delete"
+      }
+    };
+
+    window.addEventListener("keydown", handleDeleteKey);
+
+    return () => {
+      window.removeEventListener("keydown", handleDeleteKey);
+    };
+  }, [selectedItemId]); // El evento se ejecuta cuando cambia el selectedItemId
+
   return (
     <div className="p-4">
       <h2 className="text-lg font-semibold mb-4">Cronograma con Jornada</h2>
-      {/* Grid para los ComboBox alineados al principio */}
-      <Grid container spacing={2} alignItems="center" marginBottom={2}>
-        <Grid item xs={3}>
-          <TextField
-            select
-            label="Opción 1"
-            value={comboBox1}
-            onChange={(e) => setComboBox1(e.target.value)}
-            fullWidth
-            variant="outlined"
-          >
-            <MenuItem value="indirecto">Indirecto</MenuItem>
-            <MenuItem value="taller">Horas Taller</MenuItem>
-            <MenuItem value="cargill">Horas Cargill</MenuItem>
-          </TextField>
-        </Grid>
-        <Grid item xs={3}>
-          <TextField
-            select
-            label="Opción 2"
-            value={comboBox2}
-            onChange={(e) => setComboBox2(e.target.value)}
-            fullWidth
-            variant="outlined"
-          >
-            {dataForComboBox2.map((item) => (
-              <MenuItem key={item.key} value={item.key}>
-                {item.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
-      </Grid>
-
       <Timeline
         groups={groups}
         items={items}
