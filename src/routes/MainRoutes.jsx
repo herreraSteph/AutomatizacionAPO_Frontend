@@ -22,8 +22,9 @@ const DescripcionMaterial = Loadable(lazy(() => import('views/Proyectos/Descripc
 
 const ManoObra = Loadable(lazy(() => import('views/Proyectos/AsignacionManoObra')));
 const MaterialesGantt = Loadable(lazy(() => import('views/Proyectos/MaterialesGantt')));
-
+import RedirectComponent from "./RedirectComponent";
 const CPC = Loadable(lazy(() => import('views/Proyectos/CPC')));
+
 
 
 // ==============================|| MAIN ROUTING ||============================== //
@@ -34,7 +35,7 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <DashboardDefault />
+      element: <RedirectComponent />
     },
     {
       path: 'dashboard',
