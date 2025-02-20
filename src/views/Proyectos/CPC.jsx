@@ -128,15 +128,23 @@ const CPC = () => {
 
           {/* Floating Label para Tipo de Acabados */}
           <Grid item xs={6}>
-            <TextField
-              fullWidth
-              label="Tipo de Acabados"
-              variant="outlined"
-              value={tipoAcabado}  // Valor de Tipo de Acabado
-              onChange={handleTipoAcabadoChange}  // Actualizamos el estado de Tipo de Acabado
-              sx={{ backgroundColor: "#fffff" }}
-            />
-          </Grid>
+  <TextField
+    select
+    fullWidth
+    label="Tipo de Acabados"
+    variant="outlined"
+    value={tipoAcabado}  // Valor de Tipo de Acabado
+    onChange={handleTipoAcabadoChange}  // Actualizamos el estado de Tipo de Acabado
+    sx={{ backgroundColor: "#fffff" }}
+  >
+    <MenuItem value="ALQUIDALICO">ALQUIDALICO</MenuItem>
+    <MenuItem value="AISLAMIENTO">AISLAMIENTO</MenuItem>
+    <MenuItem value="EPOXICO">EPOXICO</MenuItem>
+    <MenuItem value="GALVANIZADO EN FRIO">GALVANIZADO EN FRIO</MenuItem>
+    <MenuItem value="GALVANIZADO POR INMERSION EN CALIENTE">GALVANIZADO POR INMERSION EN CALIENTE</MenuItem>
+    <MenuItem value="NA">NA</MenuItem>
+  </TextField>
+</Grid>
 
           {/* Detalles de Diseño y materiales en Anexo */}
           <Grid item xs={12} display="flex" justifyContent="flex-end">
@@ -210,9 +218,11 @@ const CPC = () => {
                 label="Area"
                 sx={{ backgroundColor: "#F2ECF5" }}
               >
-                <MenuItem value={1}>Area 1</MenuItem>
-                <MenuItem value={2}>Area 2</MenuItem>
-                <MenuItem value={3}>Area 3</MenuItem>
+                <MenuItem value="CRUSH">CRUSH</MenuItem>
+<MenuItem value="CORN MILLING">CORN MILLING</MenuItem>
+<MenuItem value="REFINERIA">REFINERIA</MenuItem>
+<MenuItem value="EMPAQUE">EMPAQUE</MenuItem>
+<MenuItem value="CONTRATISTAS">CONTRATISTAS</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -227,9 +237,31 @@ const CPC = () => {
                 label="Edificio"
                 sx={{ backgroundColor: "#F2ECF5" }}
               >
-                <MenuItem value={1}>Edificio A</MenuItem>
-                <MenuItem value={2}>Edificio B</MenuItem>
-                <MenuItem value={3}>Edificio C</MenuItem>
+                <MenuItem value="PREPARACION">PREPARACION</MenuItem>
+<MenuItem value="PRELIMPIA">PRELIMPIA</MenuItem>
+<MenuItem value="REFINERIA">REFINERIA</MenuItem>
+<MenuItem value="EXTRACCION">EXTRACCION</MenuItem>
+<MenuItem value="CALDERAS">CALDERAS</MenuItem>
+<MenuItem value="EMPAQUE">EMPAQUE</MenuItem>
+<MenuItem value="HARINAS">HARINAS</MenuItem>
+<MenuItem value="CARRO TOLVAS">CARRO TOLVAS</MenuItem>
+<MenuItem value="LAVADO DE PIPAS">LAVADO DE PIPAS</MenuItem>
+<MenuItem value="CARGA DE PIPAS">CARGA DE PIPAS</MenuItem>
+<MenuItem value="DESCARGA DE PIPAS">DESCARGA DE PIPAS</MenuItem>
+<MenuItem value="BLANQUEO REFINERIA">BLANQUEO REFINERIA</MenuItem>
+<MenuItem value="MEZZANINE REFINERIA">MEZZANINE REFINERIA</MenuItem>
+<MenuItem value="PLANTA BAJA REFINERIA">PLANTA BAJA REFINERIA</MenuItem>
+<MenuItem value="EDIF. DESMET">EDIF. DESMET</MenuItem>
+<MenuItem value="EDIF. DEODO VOTATOR">EDIF. DEODO VOTATOR</MenuItem>
+<MenuItem value="DIQUE PRODUCTO TERMINADO">DIQUE PRODUCTO TERMINADO</MenuItem>
+<MenuItem value="DIQUE DE CRUDO">DIQUE DE CRUDO</MenuItem>
+<MenuItem value="HIDROGENACION">HIDROGENACION</MenuItem>
+<MenuItem value="INTERESTERIFICADO">INTERESTERIFICADO</MenuItem>
+<MenuItem value="PTAR HARINAS">PTAR HARINAS</MenuItem>
+<MenuItem value="PTAR CORN MILLING">PTAR CORN MILLING</MenuItem>
+<MenuItem value="OFICINAS GENERALES">OFICINAS GENERALES</MenuItem>
+<MenuItem value="VELARIA">VELARIA</MenuItem>
+<MenuItem value="DAF">DAF</MenuItem>
               </Select>
             </FormControl>
           </Grid>
