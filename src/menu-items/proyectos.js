@@ -24,14 +24,7 @@ const proyectos = {
       breadcrumbs: false
     },
 
-    {
-      id: 'descripcionmaterial',
-      title: 'Descripción de Material',
-      type: 'item',
-      url: '/proyectos/descripcionmaterial',
-      icon: icons.PlagiarismIcon,
-      breadcrumbs: false
-    },
+   
     {
       id: 'CPC',
       title: 'Control de Pedido del Cliente',
