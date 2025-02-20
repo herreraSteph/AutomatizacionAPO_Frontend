@@ -1,0 +1,12 @@
+[
+    { "key": "ANDAMIO_4X6X12", "label": "ANDAMIO 4 X 6 X 12", "hrs_x_jor": 24, "tipo": "Taller" },
+    { "key": "ANDAMIO_4X2X12", "label": "ANDAMIO 4 X 2 X 12", "hrs_x_jor": 24, "tipo": "Taller" },
+    { "key": "CAMIONETA", "label": "CAMIONETA", "hrs_x_jor": 6, "tipo": "Taller" },
+    { "key": "SERVICIO_TITAN_23T", "label": "SERVICIO DE TITAN 23 TONS", "hrs_x_jor": 24, "tipo": "Taller" },
+    { "key": "GRUA_90T_RT", "label": "GRUA DE 90 TONS RT", "hrs_x_jor": 24, "tipo": "Taller" },
+    { "key": "LUMINARIAS", "label": "LUMINARIAS", "hrs_x_jor": 12, "tipo": "Taller" },
+    { "key": "MECANICO_PISO_DIURNO", "label": "SERVICIO DE MECANICO DE PISO DIURNO", "hrs_x_jor": 12, "tipo": "Taller" },
+    { "key": "MECANICO_PISO_NOCTURNO", "label": "SERVICIO DE MECANICO DE PISO NOCTURNO", "hrs_x_jor": 12, "tipo": "Taller" },
+    { "key": "GENERADOR", "label": "GENERADOR", "hrs_x_jor": 12, "tipo": "Taller" }
+  ]
+  

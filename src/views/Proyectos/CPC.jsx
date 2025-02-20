@@ -39,9 +39,8 @@ const CPC = () => {
   const [placement, setPlacement] = useState("");
   const [edificio, setEdificio] = useState("");
   const [equipoReferencia, setEquipoReferencia] = useState("");
-  const [condicionSeguridad, setCondicionSeguridad] = useState("");
-  const [seguridadSeleccionada, setSeguridadSeleccionada] = useState("");
-  const [file, setFile] = useState(null);
+  const [ubicacion, setUbicacion] = useState(""); // Estado para Interior/Exterior
+  const [seguridadSeleccionada, setSeguridadSeleccionada] = useState(""); // Estado para Condición de Seguridad
   const [numeros, setNumeros] = useState([]);
   const [selectedNumero, setSelectedNumero] = useState("");
   const [tipoAcabado, setTipoAcabado] = useState("");  // Estado para Tipo de Acabado
@@ -70,19 +69,12 @@ const CPC = () => {
     setEquipoReferencia(event.target.value);
   };
 
-  const handleCondicionSeguridadChange = (event) => {
-    setCondicionSeguridad(event.target.value);
+  const handleUbicacionChange = (event) => {
+    setUbicacion(event.target.value);
   };
 
   const handleSeguridadChange = (event) => {
     setSeguridadSeleccionada(event.target.value);
-  };
-
-  const handleFileChange = (event) => {
-    const uploadedFile = event.target.files[0];
-    if (uploadedFile) {
-      setFile(uploadedFile);
-    }
   };
 
   const handleTipoAcabadoChange = (event) => {
@@ -99,9 +91,8 @@ const CPC = () => {
       placement,
       edificio,
       equipoReferencia,
-      condicionSeguridad,
+      ubicacion,
       seguridadSeleccionada,
-      file,
       selected,
       tipoAcabado,  // Incluimos el Tipo de Acabado
       descripcion,   // Incluimos la Descripción
@@ -206,7 +197,8 @@ const CPC = () => {
         </Grid>
       </MainCard>
 
-      <MainCard title="Detalles Adicionales" sx={{ mt: 2 }}>
+      {/* Sección de Ubicación */}
+      <MainCard title="Ubicación" sx={{ mt: 2 }}>
         <Grid container spacing={2}>
           {/* Placement Area */}
           <Grid item xs={6}>
@@ -259,76 +251,57 @@ const CPC = () => {
             </FormControl>
           </Grid>
 
-          {/* Condición de Seguridad */}
+          {/* RadioGroup para Interior/Exterior */}
           <Grid item xs={6}>
-            <FormControl fullWidth variant="outlined">
-              <InputLabel>Condición de Seguridad</InputLabel>
-              <Select
-                value={condicionSeguridad}
-                onChange={handleCondicionSeguridadChange}
-                label="Condición de Seguridad"
-                sx={{ backgroundColor: "#F2ECF5" }}
+            <FormControl component="fieldset">
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                Ubicación
+              </Typography>
+              <RadioGroup
+                aria-label="ubicacion"
+                name="ubicacion"
+                value={ubicacion}
+                onChange={handleUbicacionChange}
               >
-                <MenuItem value={1}>Condición A</MenuItem>
-                <MenuItem value={2}>Condición B</MenuItem>
-                <MenuItem value={3}>Condición C</MenuItem>
-              </Select>
+                <FormControlLabel value="Interior" control={<Radio />} label="Interior" />
+                <FormControlLabel value="Exterior" control={<Radio />} label="Exterior" />
+              </RadioGroup>
             </FormControl>
           </Grid>
-
-          {/* Radio Buttons */}
-          <FormControl component="fieldset" sx={{ marginTop: 2 }}>
-            <RadioGroup
-              aria-label="seguridad"
-              name="seguridad"
-              value={seguridadSeleccionada}
-              onChange={handleSeguridadChange}
-              row
-              sx={{ justifyContent: "flex-end", width: "60%" }}
-            >
-              <FormControlLabel value="Interior" control={<Radio />} label="Interior" />
-              <FormControlLabel value="Exterior" control={<Radio />} label="Exterior" />
-            </RadioGroup>
-          </FormControl>
-
-          {/* Input File */}
-          <FormControl 
-            sx={{ 
-              marginTop: 2, 
-              width: "80%", 
-              display: "flex", 
-              justifyContent: "flex-end",
-              alignItems: "flex-end" 
-            }}
-          > 
-            <Button
-              variant="outlined"
-              component="label"
-              sx={{ 
-                textTransform: "none", 
-                width: "100%",  
-                maxWidth: "400px", 
-                padding: "10px 12px", 
-                fontSize: "1rem" 
-              }}
-            >
-              Subir archivo
-              <input type="file" hidden onChange={handleFileChange} />
-            </Button>
-          </FormControl>
-
-          {/* Botón Guardar */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px", width: "100%" }}>
-            <Button 
-              variant="contained" 
-              onClick={handleSave} 
-              sx={{ backgroundColor: "#060336", width: "15%" }}
-            >
-              Guardar
-            </Button>
-          </div>
         </Grid>
       </MainCard>
+
+      {/* Sección de Condición de Seguridad */}
+      <MainCard title="Condición de Seguridad" sx={{ mt: 2 }}>
+        <Grid container spacing={2}>
+          {/* RadioGroup para Condición de Seguridad */}
+          <Grid item xs={12}>
+            <FormControl component="fieldset">
+              <RadioGroup
+                aria-label="seguridad"
+                name="seguridad"
+                value={seguridadSeleccionada}
+                onChange={handleSeguridadChange}
+              >
+                <FormControlLabel value="Trabajo en altura" control={<Radio />} label="Trabajo en altura" />
+                <FormControlLabel value="Espacio confinado" control={<Radio />} label="Espacio confinado" />
+                <FormControlLabel value="Medidores atmosf." control={<Radio />} label="Medidores atmosf." />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </MainCard>
+
+      {/* Botón Guardar */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px", width: "100%" }}>
+        <Button 
+          variant="contained" 
+          onClick={handleSave} 
+          sx={{ backgroundColor: "#060336", width: "15%" }}
+        >
+          Guardar
+        </Button>
+      </div>
     </Box>
   );
 };
