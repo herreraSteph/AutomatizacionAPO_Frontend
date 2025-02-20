@@ -1,91 +1,92 @@
-import React from "react";
-import { Gantt } from "gantt-task-react";
-import "gantt-task-react/dist/index.css";
-import MainCard from "ui-component/cards/MainCard";
-import datas from "../../../data/cronograma.json";
 
-// Función para convertir la fecha de dd-mm-yyyy hh:mm a yyyy-mm-ddThh:mm:ss
-const formatDate = (dateStr) => {
-  const [day, month, year] = dateStr.split(" ")[0].split("-");
-  const time = dateStr.split(" ")[1] || "00:00";
-  return `${year}-${month}-${day}T${time}:00`;
-};
+import data from '../../../data/cronograma'; // Importar el archivo JSON
+import React, { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
+import gantt from "dhtmlx-gantt";
+import "../../../assets/css/cronograma.css";
 
-// Función para obtener el nivel de jerarquía basado en el parent
-const getTaskLevel = (task, tasks) => {
-  if (task.parent === 0) return 0; // Tarea principal
-  // Verificar cuántos niveles de profundidad tiene basándonos en su padre
-  let level = 1;
-  let parentTask = tasks.find(t => t.id === task.parent);
-  while (parentTask && parentTask.parent !== 0) {
-    level++;
-    parentTask = tasks.find(t => t.id === parentTask.parent);
-  }
-  return level;
-};
+const ManoObraGannt = () => {
+  const ganttContainer = useRef(null);
+  const navigate = useNavigate();
 
-// Función para calcular la cantidad de días entre las fechas de inicio y fin
-const calculateDays = (startDate, endDate) => {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const timeDifference = end - start;
-  return timeDifference / (1000 * 3600 * 24); // Convertir de milisegundos a días
-};
-
-const ManoObraGantt = () => {
-  const data = datas.data;
-
-  const tasks = data.map((task) => {
-    const taskLevel = getTaskLevel(task, data);
-
-    // Calcular el número de días entre el rango de fechas
-    const days = calculateDays(formatDate(task.start_date), formatDate(task.end_date));
-
-    // Establecer los colores dependiendo del nivel
-    let backgroundColor = "#9C27B0"; // Color por defecto (morado)
-    
-    // Ajustar colores según el nivel
-    if (taskLevel === 0) {
-      backgroundColor = "#4CAF50"; // Verde
-    } else if (taskLevel === 1) {
-      backgroundColor = "#2196F3"; // Azul
-    } else if (taskLevel === 2) {
-      backgroundColor = "#FF9800"; // Naranja
-    } else if (taskLevel === 3) {
-      backgroundColor = "#FF5722"; // Rojo
-    }
-
-    return {
-      start: new Date(formatDate(task.start_date)),
-      end: new Date(formatDate(task.end_date)),
-      name: task.text,
-      id: String(task.id),
-      parent: task.parent ? String(task.parent) : undefined, // Asignar parent si existe
-      progress: task.progress,
-      quantity: task.cantidad,
-      unit: task.unidad,
-      type: "task",
-      days: days, // Añadir el campo de días
-      styles: {
-        progressColor: "#3498db", // Color por defecto, puedes ajustarlo
-        progressSelectedColor: "#2980b9",
-        backgroundColor: backgroundColor, // Aplicar el color de fondo basado en el nivel
-        color: "white" // Color del texto en blanco
+  useEffect(() => {
+    gantt.locale = {
+      date: {
+        month_full: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
+        month_short: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+        day_full: ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"],
+        day_short: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+      },
+      labels: {
+        new_task: "Nueva tarea",
+        icon_save: "Guardar",
+        icon_cancel: "Cancelar",
+        icon_details: "Detalles",
+        icon_edit: "Editar",
+        icon_delete: "Eliminar",
+        confirm_closing: "Se perderán los cambios, ¿desea continuar?",
+        confirm_deleting: "La tarea se eliminará permanentemente, ¿continuar?",
+        section_description: "Descripción",
+        section_time: "Duración",
+        section_quantity: "Cantidad",
+        section_unit: "Unidad",
+        section_type: "Tipo",
+        day: "Día",
+        week: "Semana",
+        month: "Mes",
+        year: "Año",
       }
     };
-  });
+
+    gantt.config.columns = [
+      { name: "text", label: "Nom. Act.", width: 125, tree: true },
+      { name: "start_date", label: "Inicio", align: "center", width: 100 },
+      { name: "end_date", label: "Término", align: "center", width: 100 },
+      { name: "duration", label: "Días", align: "center", width: 50 },
+      { name: "cantidad", label: "Cant", align: "center", width: 50 },
+      { name: "unidad", label: "Unidad", align: "center", width: 50 },
+      { name: "add", label: "", width: 44 }
+    ];
+
+    gantt.config.lightbox.sections = [
+      { name: "description", height: 70, map_to: "text", type: "textarea", focus: true },
+      { name: "time", height: 72, map_to: "auto", type: "time" },
+      { name: "quantity", label: "Cantidad", height: 40, map_to: "cantidad", type: "textarea" },
+      { 
+        name: "unit", label: "Unidad", height: 40, map_to: "unidad", type: "select",
+        options: [
+          { key: "pzas", label: "Pzas" },
+          { key: "lote", label: "Lote" },
+          { key: "act", label: "Act" },
+          { key: "jts", label: "Jts" }
+        ]
+      }
+    ];
+
+    gantt.templates.task_class = function (start, end, task) {
+      const level = gantt.getTask(task.id).$level;
+      if (level === 0) return "nivel-0";
+      if (level === 1) return "nivel-1";
+      if (level === 2) return "nivel-2";
+      return "nivel-otros";
+    };
+
+    gantt.config.scale_unit = "day";
+    gantt.config.step = 1;
+    gantt.config.date_scale = "%d %M";
+
+    gantt.init(ganttContainer.current);
+    gantt.parse(data); // Cargar datos del JSON
+
+    return () => {
+      gantt.clearAll();
+    };
+  }, []);
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "300px", // Establecer altura máxima
-        overflow: "auto" // Habilitar scroll si se excede el límite
-      }}
-    >
-      <Gantt tasks={tasks} />
-    </div>
+    <div ref={ganttContainer} style={{ width: "100%", height: "400px" }} />
   );
 };
 
-export default ManoObraGantt;
+export default ManoObraGannt;

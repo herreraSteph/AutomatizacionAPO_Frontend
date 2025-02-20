@@ -1,0 +1,15 @@
+[
+    { "key": "PAILERO", "label": "PAILERO-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "ALBAÑIL", "label": "ALBAÑIL-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "ARGONERO", "label": "ARGONERO-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "MICRO_ALAMBRERO", "label": "MICRO ALAMBRERO-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "PINTOR", "label": "PINTOR-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "MANIOBRISTA", "label": "MANIOBRISTA-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "ANDAMIERO", "label": "ANDAMIERO-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "MEDIO_OFICIAL", "label": "MEDIO OFICIAL-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "AYUDANTES", "label": "AYUDANTES-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "FIERRO", "label": "FIERRO-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "LAMINERO", "label": "LAMINERO-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "ELECTRICISTA_CALIFICADO", "label": "ELECTRICISTA CALIFICADO-CAR", "hrs_x_jor": 10.5, "tipo": "Cargill" },
+    { "key": "CHOFER", "label": "CHOFER-CAR", "hrs_x_jor": 6, "tipo": "Cargill" }
+]

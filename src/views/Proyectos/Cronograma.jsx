@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom"; // Importar useNavigate para la redirección
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import gantt from "dhtmlx-gantt";
 import MainCard from "ui-component/cards/MainCard";
@@ -7,6 +8,7 @@ import "../../assets/css/cronograma.css"; // Archivo CSS para colores
 
 const Cronograma = () => {
   const ganttContainer = useRef(null);
+  const navigate = useNavigate(); // Inicializar useNavigate
 
   useEffect(() => {
     // Configurar idioma español
@@ -85,8 +87,32 @@ const Cronograma = () => {
       return "nivel-otros"; // Niveles más profundos
     };
 
+    // Configurar la escala de tiempo
+    gantt.config.scale_unit = "day"; // Mostrar días
+    gantt.config.step = 1; // Un paso por día
+    gantt.config.date_scale = "%d %M"; // Formato de la escala de tiempo
+
+    // Definir el rango de tiempo inicial
+    const startDate = new Date(); // Fecha de inicio hoy
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 100); // Fecha de fin en 100 días
+
+    gantt.config.start_date = startDate;
+    gantt.config.end_date = endDate;
+
     // Inicializar el Gantt
     gantt.init(ganttContainer.current);
+
+    // Agregar una tarea predeterminada de 100 días
+    gantt.addTask({
+      id: 1,
+      text: "Tarea Inicial",
+      start_date: gantt.date.date_to_str("%d-%m-%Y")(startDate),
+      end_date: gantt.date.date_to_str("%d-%m-%Y")(endDate),
+      duration: 100,
+      cantidad: 1,
+      unidad: "pzas"
+    });
 
     return () => {
       gantt.clearAll();
@@ -107,19 +133,9 @@ const Cronograma = () => {
                 backgroundColor: "#060336",
                 color: "white"
               }}
+              onClick={() => navigate("/proyectos/AsignacionManoObra")} // Redireccionar al hacer clic
             >
               Siguiente
-            </Button>
-            <Button
-              variant="outlined"
-              sx={{
-                borderRadius: "20px", // Bordes redondeados
-                padding: "10px 20px",
-                borderColor: "#060336",
-                color: "#060336"
-              }}
-            >
-              Descargar
             </Button>
           </div>
         </div>

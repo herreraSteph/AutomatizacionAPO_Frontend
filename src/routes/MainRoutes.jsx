@@ -20,7 +20,7 @@ const Cronograma = Loadable(lazy(() => import('views/Proyectos/Cronograma')));
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const DescripcionMaterial = Loadable(lazy(() => import('views/Proyectos/DescripcionMaterial')));
 
-const GanntManoObra = Loadable(lazy(() => import('views/Proyectos/GanttManoObra')));
+const ManoObra = Loadable(lazy(() => import('views/Proyectos/AsignacionManoObra')));
 const MaterialesGantt = Loadable(lazy(() => import('views/Proyectos/MaterialesGantt')));
 
 const CPC = Loadable(lazy(() => import('views/Proyectos/CPC')));
@@ -93,11 +93,11 @@ const MainRoutes = {
           element : <DescripcionMaterial />
         },
         {
-          path: 'GanntManoObra',
-          element : <GanntManoObra />
+          path: 'AsignacionManoObra',
+          element : <ManoObra />
         },
         {
-          path: 'MaterialesGantt',
+          path: 'Equipo',
           element : <MaterialesGantt />
         },
         {
