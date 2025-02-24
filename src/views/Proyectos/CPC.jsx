@@ -39,18 +39,39 @@ const CPC = () => {
   const [placement, setPlacement] = useState("");
   const [edificio, setEdificio] = useState("");
   const [equipoReferencia, setEquipoReferencia] = useState("");
-  const [ubicacion, setUbicacion] = useState(""); // Estado para Interior/Exterior
-  const [seguridadSeleccionada, setSeguridadSeleccionada] = useState(""); // Estado para Condición de Seguridad
+  const [ubicacion, setUbicacion] = useState("");
+  const [seguridadSeleccionada, setSeguridadSeleccionada] = useState("");
   const [numeros, setNumeros] = useState([]);
   const [selectedNumero, setSelectedNumero] = useState("");
-  const [tipoAcabado, setTipoAcabado] = useState("");  // Estado para Tipo de Acabado
-  const [descripcion, setDescripcion] = useState("");  // Estado para Descripción
+  const [tipoAcabado, setTipoAcabado] = useState("");
+  const [descripcion, setDescripcion] = useState("");
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const storedNumeros = JSON.parse(localStorage.getItem("numeros")) || [];
-    setNumeros(storedNumeros);
+    // Obtener el valor de 'message' del localStorage
+    const message = localStorage.getItem("message");
+
+    // Realizar la petición POST a la API
+    fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/Consultar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: message }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Mapear la respuesta para obtener el formato deseado
+        const formattedData = data.map((item) => ({
+          id_numero: item.id_numero,
+          nombre: item.nombre,
+        }));
+        setNumeros(formattedData);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      });
   }, []);
 
   const handleSelection = (event, newSelection) => {
@@ -86,23 +107,38 @@ const CPC = () => {
   };
 
   const handleSave = () => {
-    const formData = {
-      selectedNumero,
-      placement,
-      edificio,
-      equipoReferencia,
-      ubicacion,
-      seguridadSeleccionada,
-      selected,
-      tipoAcabado,  // Incluimos el Tipo de Acabado
-      descripcion,   // Incluimos la Descripción
+    // Construir el objeto en el formato requerido por la API
+    const requestBody = {
+      idNumero: selectedNumero,
+      tipoAcabados: tipoAcabado,
+      descripcion: descripcion,
+      area: placement,
+      edificio: edificio,
+      equipoReferencia: equipoReferencia,
+      ubicacion: ubicacion,
+      condicionSeguridad: seguridadSeleccionada,
+      disenios: selected, // Aquí se asume que `selected` es un array de strings
     };
 
-    // Guardamos el objeto en localStorage
-    localStorage.setItem("cpcData", JSON.stringify(formData));
-
-    // Navegar a la página de Cronograma
-    navigate('/proyectos/cronograma');
+    // Realizar la petición POST a la API
+    fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/CrearProyecto", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Proyecto creado exitosamente:", data);
+        // Guardar los datos en localStorage
+        localStorage.setItem("cpcData", JSON.stringify(requestBody));
+        // Navegar a la página de Cronograma
+        navigate('/proyectos/cronograma');
+      })
+      .catch((error) => {
+        console.error("Error al crear el proyecto:", error);
+      });
   };
 
   return (
@@ -120,7 +156,9 @@ const CPC = () => {
                 sx={{ backgroundColor: "#fffff" }}
               >
                 {numeros.map((num, index) => (
-                  <MenuItem key={index} value={num}>{num}</MenuItem>
+                  <MenuItem key={index} value={num.id_numero}>
+                    {num.nombre}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -128,23 +166,23 @@ const CPC = () => {
 
           {/* Floating Label para Tipo de Acabados */}
           <Grid item xs={6}>
-  <TextField
-    select
-    fullWidth
-    label="Tipo de Acabados"
-    variant="outlined"
-    value={tipoAcabado}  // Valor de Tipo de Acabado
-    onChange={handleTipoAcabadoChange}  // Actualizamos el estado de Tipo de Acabado
-    sx={{ backgroundColor: "#fffff" }}
-  >
-    <MenuItem value="ALQUIDALICO">ALQUIDALICO</MenuItem>
-    <MenuItem value="AISLAMIENTO">AISLAMIENTO</MenuItem>
-    <MenuItem value="EPOXICO">EPOXICO</MenuItem>
-    <MenuItem value="GALVANIZADO EN FRIO">GALVANIZADO EN FRIO</MenuItem>
-    <MenuItem value="GALVANIZADO POR INMERSION EN CALIENTE">GALVANIZADO POR INMERSION EN CALIENTE</MenuItem>
-    <MenuItem value="NA">NA</MenuItem>
-  </TextField>
-</Grid>
+            <TextField
+              select
+              fullWidth
+              label="Tipo de Acabados"
+              variant="outlined"
+              value={tipoAcabado}
+              onChange={handleTipoAcabadoChange}
+              sx={{ backgroundColor: "#fffff" }}
+            >
+              <MenuItem value="ALQUIDALICO">ALQUIDALICO</MenuItem>
+              <MenuItem value="AISLAMIENTO">AISLAMIENTO</MenuItem>
+              <MenuItem value="EPOXICO">EPOXICO</MenuItem>
+              <MenuItem value="GALVANIZADO EN FRIO">GALVANIZADO EN FRIO</MenuItem>
+              <MenuItem value="GALVANIZADO POR INMERSION EN CALIENTE">GALVANIZADO POR INMERSION EN CALIENTE</MenuItem>
+              <MenuItem value="NA">NA</MenuItem>
+            </TextField>
+          </Grid>
 
           {/* Detalles de Diseño y materiales en Anexo */}
           <Grid item xs={12} display="flex" justifyContent="flex-end">
@@ -192,13 +230,13 @@ const CPC = () => {
               variant="outlined"
               multiline
               rows={4}
-              value={descripcion}  // Valor de Descripción
-              onChange={handleDescripcionChange}  // Actualizamos el estado de Descripción
+              value={descripcion}
+              onChange={handleDescripcionChange}
               sx={{
                 backgroundColor: "#fffff",
                 maxWidth: "400px",
                 height: "100%",
-                marginTop: "-115px",  // Ajusta este valor si necesitas moverlo más arriba
+                marginTop: "-115px",
               }}
             />
           </Grid>
@@ -219,10 +257,10 @@ const CPC = () => {
                 sx={{ backgroundColor: "#F2ECF5" }}
               >
                 <MenuItem value="CRUSH">CRUSH</MenuItem>
-<MenuItem value="CORN MILLING">CORN MILLING</MenuItem>
-<MenuItem value="REFINERIA">REFINERIA</MenuItem>
-<MenuItem value="EMPAQUE">EMPAQUE</MenuItem>
-<MenuItem value="CONTRATISTAS">CONTRATISTAS</MenuItem>
+                <MenuItem value="CORN MILLING">CORN MILLING</MenuItem>
+                <MenuItem value="REFINERIA">REFINERIA</MenuItem>
+                <MenuItem value="EMPAQUE">EMPAQUE</MenuItem>
+                <MenuItem value="CONTRATISTAS">CONTRATISTAS</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -238,30 +276,30 @@ const CPC = () => {
                 sx={{ backgroundColor: "#F2ECF5" }}
               >
                 <MenuItem value="PREPARACION">PREPARACION</MenuItem>
-<MenuItem value="PRELIMPIA">PRELIMPIA</MenuItem>
-<MenuItem value="REFINERIA">REFINERIA</MenuItem>
-<MenuItem value="EXTRACCION">EXTRACCION</MenuItem>
-<MenuItem value="CALDERAS">CALDERAS</MenuItem>
-<MenuItem value="EMPAQUE">EMPAQUE</MenuItem>
-<MenuItem value="HARINAS">HARINAS</MenuItem>
-<MenuItem value="CARRO TOLVAS">CARRO TOLVAS</MenuItem>
-<MenuItem value="LAVADO DE PIPAS">LAVADO DE PIPAS</MenuItem>
-<MenuItem value="CARGA DE PIPAS">CARGA DE PIPAS</MenuItem>
-<MenuItem value="DESCARGA DE PIPAS">DESCARGA DE PIPAS</MenuItem>
-<MenuItem value="BLANQUEO REFINERIA">BLANQUEO REFINERIA</MenuItem>
-<MenuItem value="MEZZANINE REFINERIA">MEZZANINE REFINERIA</MenuItem>
-<MenuItem value="PLANTA BAJA REFINERIA">PLANTA BAJA REFINERIA</MenuItem>
-<MenuItem value="EDIF. DESMET">EDIF. DESMET</MenuItem>
-<MenuItem value="EDIF. DEODO VOTATOR">EDIF. DEODO VOTATOR</MenuItem>
-<MenuItem value="DIQUE PRODUCTO TERMINADO">DIQUE PRODUCTO TERMINADO</MenuItem>
-<MenuItem value="DIQUE DE CRUDO">DIQUE DE CRUDO</MenuItem>
-<MenuItem value="HIDROGENACION">HIDROGENACION</MenuItem>
-<MenuItem value="INTERESTERIFICADO">INTERESTERIFICADO</MenuItem>
-<MenuItem value="PTAR HARINAS">PTAR HARINAS</MenuItem>
-<MenuItem value="PTAR CORN MILLING">PTAR CORN MILLING</MenuItem>
-<MenuItem value="OFICINAS GENERALES">OFICINAS GENERALES</MenuItem>
-<MenuItem value="VELARIA">VELARIA</MenuItem>
-<MenuItem value="DAF">DAF</MenuItem>
+                <MenuItem value="PRELIMPIA">PRELIMPIA</MenuItem>
+                <MenuItem value="REFINERIA">REFINERIA</MenuItem>
+                <MenuItem value="EXTRACCION">EXTRACCION</MenuItem>
+                <MenuItem value="CALDERAS">CALDERAS</MenuItem>
+                <MenuItem value="EMPAQUE">EMPAQUE</MenuItem>
+                <MenuItem value="HARINAS">HARINAS</MenuItem>
+                <MenuItem value="CARRO TOLVAS">CARRO TOLVAS</MenuItem>
+                <MenuItem value="LAVADO DE PIPAS">LAVADO DE PIPAS</MenuItem>
+                <MenuItem value="CARGA DE PIPAS">CARGA DE PIPAS</MenuItem>
+                <MenuItem value="DESCARGA DE PIPAS">DESCARGA DE PIPAS</MenuItem>
+                <MenuItem value="BLANQUEO REFINERIA">BLANQUEO REFINERIA</MenuItem>
+                <MenuItem value="MEZZANINE REFINERIA">MEZZANINE REFINERIA</MenuItem>
+                <MenuItem value="PLANTA BAJA REFINERIA">PLANTA BAJA REFINERIA</MenuItem>
+                <MenuItem value="EDIF. DESMET">EDIF. DESMET</MenuItem>
+                <MenuItem value="EDIF. DEODO VOTATOR">EDIF. DEODO VOTATOR</MenuItem>
+                <MenuItem value="DIQUE PRODUCTO TERMINADO">DIQUE PRODUCTO TERMINADO</MenuItem>
+                <MenuItem value="DIQUE DE CRUDO">DIQUE DE CRUDO</MenuItem>
+                <MenuItem value="HIDROGENACION">HIDROGENACION</MenuItem>
+                <MenuItem value="INTERESTERIFICADO">INTERESTERIFICADO</MenuItem>
+                <MenuItem value="PTAR HARINAS">PTAR HARINAS</MenuItem>
+                <MenuItem value="PTAR CORN MILLING">PTAR CORN MILLING</MenuItem>
+                <MenuItem value="OFICINAS GENERALES">OFICINAS GENERALES</MenuItem>
+                <MenuItem value="VELARIA">VELARIA</MenuItem>
+                <MenuItem value="DAF">DAF</MenuItem>
               </Select>
             </FormControl>
           </Grid>
@@ -269,17 +307,14 @@ const CPC = () => {
           {/* Equipo de Referencia */}
           <Grid item xs={6}>
             <FormControl fullWidth variant="outlined">
-              <InputLabel>Equipo de Referencia</InputLabel>
-              <Select
+              <InputLabel></InputLabel>
+              <TextField
                 value={equipoReferencia}
                 onChange={handleEquipoReferenciaChange}
                 label="Equipo de Referencia"
-                sx={{ backgroundColor: "#F2ECF5" }}
-              >
-                <MenuItem value={1}>Equipo X</MenuItem>
-                <MenuItem value={2}>Equipo Y</MenuItem>
-                <MenuItem value={3}>Equipo Z</MenuItem>
-              </Select>
+                variant="outlined"
+                sx={{ backgroundColor: "#FFFFF" }}
+              />
             </FormControl>
           </Grid>
 

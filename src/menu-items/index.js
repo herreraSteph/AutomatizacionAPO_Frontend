@@ -5,7 +5,7 @@ import proyectos from './proyectos';
 
 // ==============================|| MENU ITEMS ||============================== //
 const menuItems = {
-  items: [dashboard, pages, proyectos, other]
+  items: [dashboard, , proyectos, ]
 };
 
 export default menuItems;

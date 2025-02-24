@@ -17,6 +17,7 @@ import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import CircularProgress from '@mui/material/CircularProgress'; // Importando CircularProgress
 
 // Importar IconButton
 import IconButton from '@mui/material/IconButton'; // Importando IconButton
@@ -31,7 +32,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 const AuthLogin = ({ ...others }) => {
-  const theme = useTheme(); // Ahora useTheme está definido
+  const theme = useTheme();
   const matchDownSM = useMediaQuery(theme.breakpoints.down('md'));
   const [checked, setChecked] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -45,7 +46,6 @@ const AuthLogin = ({ ...others }) => {
   };
 
   const handleSubmitForm = async (values, { setSubmitting, setErrors }) => {
-    // Imprimir los valores del formulario en consola
     console.log('Formulario enviado con los siguientes valores:');
     console.log('Email:', values.email);
     console.log('Password:', values.password);
@@ -56,15 +56,11 @@ const AuthLogin = ({ ...others }) => {
         password: values.password
       });
 
-      // Imprimir la respuesta de la API en la consola
       console.log('Respuesta de la API:', response.data);
 
-      // Guardar mensaje en localStorage si la solicitud es exitosa
       localStorage.setItem('message', response.data.mensaje);
 
-      // Redirigir al usuario al dashboard después del login exitoso
       window.location.href = "http://localhost:3000/Serman/dashboard/default";
-
     } catch (error) {
       if (error.response) {
         setErrors({ submit: error.response.data.message || 'Error al iniciar sesión' });
@@ -80,9 +76,7 @@ const AuthLogin = ({ ...others }) => {
     <>
       <Grid container direction="column" justifyContent="center" spacing={2}>
         <Grid item xs={12} container alignItems="center" justifyContent="center">
-          <Box sx={{ mb: 2 }}>
-            {/* Aquí puedes agregar algo si lo necesitas */}
-          </Box>
+          <Box sx={{ mb: 2 }} />
         </Grid>
       </Grid>
 
@@ -160,8 +154,16 @@ const AuthLogin = ({ ...others }) => {
 
             <Box sx={{ mt: 2 }}>
               <AnimateButton>
-                <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" style={{ backgroundColor: '#060336', color: 'white' }}>
-                  Entrar
+                <Button
+                  disableElevation
+                  disabled={isSubmitting}
+                  fullWidth
+                  size="large"
+                  type="submit"
+                  variant="contained"
+                  style={{ backgroundColor: '#060336', color: 'white' }}
+                >
+                  {isSubmitting ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Entrar'}
                 </Button>
               </AnimateButton>
             </Box>
