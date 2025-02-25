@@ -105,7 +105,6 @@ const CPC = () => {
   const handleDescripcionChange = (event) => {
     setDescripcion(event.target.value);
   };
-
   const handleSave = () => {
     // Construir el objeto en el formato requerido por la API
     const requestBody = {
@@ -119,7 +118,7 @@ const CPC = () => {
       condicionSeguridad: seguridadSeleccionada,
       disenios: selected, // Aquí se asume que `selected` es un array de strings
     };
-
+  
     // Realizar la petición POST a la API
     fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/CrearProyecto", {
       method: "POST",
@@ -131,8 +130,12 @@ const CPC = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log("Proyecto creado exitosamente:", data);
-        // Guardar los datos en localStorage
-        localStorage.setItem("cpcData", JSON.stringify(requestBody));
+  
+        // Guardar el valor de 'mensaje' en localStorage con el nombre 'idProyecto'
+        if (data.mensaje) {
+          localStorage.setItem("idProyecto", Number(data.mensaje));
+        }
+  
         // Navegar a la página de Cronograma
         navigate('/proyectos/cronograma');
       })

@@ -1,12 +1,32 @@
 import React, { useState } from "react";
-import { TextField, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, InputAdornment } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import {
+  Select,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Button,
+  CircularProgress,
+  Snackbar,
+  Alert,
+} from "@mui/material";
+import { agregarMaterial } from "../../api/Construccion";
+import { useNavigate } from "react-router-dom";
 
 const DescripcionMaterial = () => {
   const [selectedOption1, setSelectedOption1] = useState("");
   const [selectedOption2, setSelectedOption2] = useState("");
   const [selectedOption3, setSelectedOption3] = useState("");
   const [tableData, setTableData] = useState([]);
+  const [loading, setLoading] = useState(false); // Estado para el spinner
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // Estado para el Snackbar
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Mensaje del Snackbar
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Severidad del Snackbar (success o error)
+  const navigate = useNavigate();
 
   const options1 = ["Opción 1", "Opción 2"];
   const options2 = {
@@ -45,6 +65,42 @@ const DescripcionMaterial = () => {
       };
       setTableData([...tableData, newRow]);
     }
+  };
+
+  const handleSave = async () => {
+    setLoading(true); // Activar el spinner
+    try {
+      const materiales = tableData.map((row) => ({
+        descripcion: row.descripcion,
+        cantidad: row.cantidad,
+        unidad: row.unidad,
+      }));
+
+      const response = await agregarMaterial(materiales);
+
+      if (response.tipoError === 0) {
+        setSnackbarMessage("Los materiales se guardaron correctamente.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
+        setTimeout(() => {
+          navigate("/");
+        }, 2000); // Redirige después de 2 segundos
+      } else {
+        setSnackbarMessage("Hubo un error al guardar los materiales.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+      }
+    } catch (error) {
+      setSnackbarMessage("Hubo un error al guardar los materiales.");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false); // Desactivar el spinner
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -140,15 +196,18 @@ const DescripcionMaterial = () => {
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "40px" }}>
           <Button
             variant="contained"
+            onClick={handleSave}
+            disabled={loading || tableData.length === 0} // Deshabilitar si está cargando o no hay datos
             sx={{
               backgroundColor: "#060336",
               color: "white",
               padding: "8px 20px",
               fontSize: "0.9rem",
               borderRadius: "20px",
+              minWidth: "120px", // Para que no cambie de tamaño al mostrar el spinner
             }}
           >
-            Guardar
+            {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Guardar"}
           </Button>
 
           <Button
@@ -165,6 +224,18 @@ const DescripcionMaterial = () => {
           </Button>
         </div>
       </Paper>
+
+      {/* Snackbar para notificaciones */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
