@@ -151,7 +151,7 @@ const CPC = () => {
       condicionSeguridad: seguridadSeleccionada,
       disenios: selected,
     };
-
+    
     fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/CrearProyecto", {
       method: "POST",
       headers: {
@@ -162,7 +162,9 @@ const CPC = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log("Proyecto creado exitosamente:", data);
-        localStorage.setItem("cpcData", JSON.stringify(requestBody));
+        if (data.mensaje) {
+          localStorage.setItem("idProyecto", Number(data.mensaje));
+        }
         navigate('/proyectos/cronograma');
       })
       .catch((error) => {

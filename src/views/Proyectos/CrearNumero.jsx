@@ -47,6 +47,23 @@ const CrearNumero = () => {
     }
   };
 
+  const getFechaIsoCdmx = () => {
+    const now = new Date();
+    const fechaCdmx = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Mexico_City",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).formatToParts(now);
+  
+    const getPart = (type) => fechaCdmx.find((part) => part.type === type).value;
+  
+    return `${getPart("year")}-${getPart("month")}-${getPart("day")}T${getPart("hour")}:${getPart("minute")}:${getPart("second")}.000Z`;
+  };
   const validateForm = () => {
     const newErrors = {};
 
@@ -82,10 +99,9 @@ const CrearNumero = () => {
       setLoading(false);
       return;
     }
-
     const payload = {
       nombre: formData.numero,
-      fecha_creacion: new Date().toISOString(),
+      fecha_creacion: getFechaIsoCdmx(),
       cliente: formData.cliente,
       fecha_inicio: formData.fechaInicio,
       representante: formData.representante,

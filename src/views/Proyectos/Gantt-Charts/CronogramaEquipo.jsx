@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useImperativeHandle } from "react";
 import Timeline from "react-calendar-timeline";
 import "react-calendar-timeline/dist/style.css";
 import moment from "moment";
-import data from "../../../data/Equipo-items"; // Importa un único archivo JSON
-import { Grid, TextField, MenuItem } from "@mui/material";
+import { Grid, TextField, Button } from "@mui/material";
 
-const CronogramaEquipo = () => {
+const CronogramaEquipo = React.forwardRef((props, ref) => {
   const [groups, setGroups] = useState([
     {
       id: 0, // ID único para el grupo por defecto
@@ -20,7 +19,7 @@ const CronogramaEquipo = () => {
 
   const [selectedItemId, setSelectedItemId] = useState(null);
 
-  const [comboBox, setComboBox] = useState("");
+  const [inputValue, setInputValue] = useState(""); // Valor del input de texto
   const [itemTitle, setItemTitle] = useState(1); // Valor inicial del input numérico
 
   useEffect(() => {
@@ -202,28 +201,25 @@ const CronogramaEquipo = () => {
     setItems((prevItems) => prevItems.filter((item) => item.group !== groupId));
   };
 
-  const handleComboBoxChange = (e) => {
-    const selectedValue = e.target.value;
-    setComboBox(selectedValue);
+  const handleAddGroup = () => {
+    if (inputValue.trim() === "") return;
 
-    const selectedObject = data.find((item) => item.label === selectedValue);
-
-    if (!selectedObject) return;
     // Verifica si el grupo ya existe
-    const groupExists = groups.some((group) => group.title === selectedObject.label);
+    const groupExists = groups.some((group) => group.title === inputValue);
 
     if (!groupExists) {
       // Agrega un nuevo grupo con un ID único y las nuevas propiedades
       const newGroup = {
         id: groups.length, // Usamos el length para evitar conflictos con el grupo por defecto
-        title: selectedObject.label,
-        hrsXJor: selectedObject.hrs_x_jor, // Valor inicial
+        title: inputValue,
+        hrsXJor: 8, // Valor inicial por defecto
         jor: 0, // Valor inicial
         hrsNor: 0, // Valor inicial
         jorExt: 0, // Valor inicial
         hrsExt: 0, // Valor inicial
       };
       setGroups((prevGroups) => [...prevGroups, newGroup]);
+      setInputValue(""); // Limpiar el input después de agregar
     }
   };
 
@@ -266,36 +262,59 @@ const CronogramaEquipo = () => {
     );
   };
 
+    const exportData = () => {
+      const dataToExport = groups
+        .filter((group) => !group.isHeader) // Excluir el grupo de encabezado
+        .map((group) => ({
+          id: group.id,
+          title: group.title,
+          hrsXJor: group.hrsXJor,
+          jor: group.jor,
+          hrsNor: group.hrsNor,
+          jorExt: group.jorExt,
+          hrsExt: group.hrsExt,
+        }));
+  
+      return dataToExport;
+    };
+  
+    useImperativeHandle(ref, () => ({
+      exportData,
+    }));
+
   return (
     <div className="p-4">
       <br/>
       <Grid container spacing={2} alignItems="center" marginBottom={2}>
-        <Grid item xs={3}>
-          <TextField
-            select
-            label="Seleccione una opción"
-            value={comboBox}
-            onChange={handleComboBoxChange}
-            fullWidth
-            variant="outlined"
-          >
-            {data.map((item) => (
-              <MenuItem key={item.key} value={item.label}>
-                {item.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
-        <Grid item xs={2}>
+      <Grid item xs={2}>
           <TextField
             type="number"
-            label="Título del ítem"
+            label="Numero de jornada"
             value={itemTitle}
             onChange={(e) => setItemTitle(Number(e.target.value))}
             fullWidth
             variant="outlined"
             inputProps={{ min: 1 }} // Asegura que el valor sea mayor o igual a 1
           />
+        </Grid>
+        <Grid item xs={3}>
+          <TextField
+            label="Nombre del equipo o material"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            fullWidth
+            variant="outlined"
+          />
+        </Grid>
+        <Grid item xs={2}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddGroup}
+            fullWidth
+          >
+            Agregar Grupo
+          </Button>
         </Grid>
       </Grid>
 
@@ -327,6 +346,6 @@ const CronogramaEquipo = () => {
       />
     </div>
   );
-};
+});
 
 export default CronogramaEquipo;

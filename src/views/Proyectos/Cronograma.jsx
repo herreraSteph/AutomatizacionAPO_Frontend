@@ -1,14 +1,18 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Importar useNavigate para la redirección
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import gantt from "dhtmlx-gantt";
 import MainCard from "ui-component/cards/MainCard";
-import { Button } from "@mui/material"; // Asegúrate de importar Button
+import { Button, CircularProgress, Modal, Box, Typography } from "@mui/material"; // Importar componentes de Material-UI
 import "../../assets/css/cronograma.css"; // Archivo CSS para colores
+import { agregarActividades } from "../../api/Construccion"; // Importar la función de la API
 
 const Cronograma = () => {
   const ganttContainer = useRef(null);
   const navigate = useNavigate(); // Inicializar useNavigate
+  const [loading, setLoading] = useState(false); // Estado para controlar el spinner
+  const [modalOpen, setModalOpen] = useState(false); // Estado para controlar el modal
+  const [modalMessage, setModalMessage] = useState(""); // Mensaje del modal
 
   useEffect(() => {
     // Configurar idioma español
@@ -54,7 +58,7 @@ const Cronograma = () => {
     // Configurar el formulario de la tarea
     gantt.config.lightbox.sections = [
       { name: "description", height: 70, map_to: "text", type: "textarea", focus: true },
-      { name: "time", height: 72, map_to: "auto", type: "time" },
+      { name: "time", height: 72, map_to: "auto", type: "duration" },
       { name: "quantity", label: "Cantidad", height: 40, map_to: "cantidad", type: "textarea" },
       { 
         name: "unit", label: "Unidad", height: 40, map_to: "unidad", type: "select",
@@ -73,7 +77,7 @@ const Cronograma = () => {
         const startDate = new Date(task.start_date);
         const endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + task.duration);
-        task.end_date = gantt.date.date_to_str("%d-%m-%Y")(endDate); // Formatear la fecha
+        task.end_date = gantt.date.date_to_str("%d-%m-%Y %H:%i")(endDate); // Formatear la fecha
         gantt.updateTask(id);
       }
     });
@@ -103,21 +107,46 @@ const Cronograma = () => {
     // Inicializar el Gantt
     gantt.init(ganttContainer.current);
 
-    // Agregar una tarea predeterminada de 100 días
-    gantt.addTask({
-      id: 1,
-      text: "Tarea Inicial",
-      start_date: gantt.date.date_to_str("%d-%m-%Y")(startDate),
-      end_date: gantt.date.date_to_str("%d-%m-%Y")(endDate),
-      duration: 100,
-      cantidad: 1,
-      unidad: "pzas"
-    });
-
     return () => {
       gantt.clearAll();
     };
   }, []);
+
+  // Función para exportar los datos del Gantt como JSON y descargarlos
+  const exportGanttData = async () => {
+    setLoading(true); // Activar el spinner
+    const tasks = gantt.getTaskByTime(); // Obtener todas las tareas
+
+    // Formatear los datos según el esquema proporcionado
+    const data = tasks.map(task => ({
+      id: task.id,
+      start_date: gantt.date.date_to_str("%d-%m-%Y %H:%i")(new Date(task.start_date)),
+      text: task.text,
+      duration: task.duration,
+      parent: task.parent || "0",
+      end_date: gantt.date.date_to_str("%d-%m-%Y %H:%i")(new Date(task.end_date)),
+      progress: task.progress || 0,
+      cantidad: task.cantidad || "",
+      unidad: task.unidad || ""
+    }));
+
+    try {
+      const response = await agregarActividades(data); // Llamar a la función de la API
+      console.log(response); // Mostrar la respuesta en la consola
+
+      if (response.tipoError === 0) {
+        navigate("/proyectos/AsignacionManoObra"); // Redirigir si no hay error
+      } else {
+        setModalMessage("Algo ocurrió mal. Por favor, inténtelo de nuevo."); // Mensaje de error
+        setModalOpen(true); // Mostrar el modal
+      }
+    } catch (error) {
+      setModalMessage("Ocurrió un error inesperado. Por favor, inténtelo de nuevo."); // Mensaje de error
+      setModalOpen(true); // Mostrar el modal
+    } finally {
+      setLoading(false); // Desactivar el spinner
+    }
+  };
 
   return (
     <MainCard
@@ -133,15 +162,52 @@ const Cronograma = () => {
                 backgroundColor: "#060336",
                 color: "white"
               }}
-              onClick={() => navigate("/proyectos/AsignacionManoObra")} // Redireccionar al hacer clic
+              onClick={exportGanttData} // Llamar a la función de exportación
+              disabled={loading} // Deshabilitar el botón mientras se carga
             >
-              Siguiente
+              {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Siguiente"}
             </Button>
           </div>
         </div>
       }
     >
       <div ref={ganttContainer} style={{ width: "100%", height: "400px" }} />
+
+      {/* Modal para mostrar mensajes de error */}
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: "8px"
+          }}
+        >
+          <Typography id="modal-modal-title" variant="h6" component="h2">
+            Error
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+            {modalMessage}
+          </Typography>
+          <Button
+            variant="contained"
+            sx={{ mt: 2, backgroundColor: "#060336", color: "white" }}
+            onClick={() => setModalOpen(false)}
+          >
+            Cerrar
+          </Button>
+        </Box>
+      </Modal>
     </MainCard>
   );
 };

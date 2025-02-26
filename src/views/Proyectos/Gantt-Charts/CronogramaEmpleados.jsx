@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useImperativeHandle } from "react";
 import Timeline from "react-calendar-timeline";
 import "react-calendar-timeline/dist/style.css";
 import moment from "moment";
 import indirecto from "../../../data/Indirecto-items";
 import taller from "../../../data/Taller-items";
 import cargill from "../../../data/Cargill-items";
-import { Grid, TextField, MenuItem } from "@mui/material";
+import { Grid, TextField, MenuItem} from "@mui/material";
 
-const CronogramaEmpleados = () => {
+const CronogramaEmpleados = React.forwardRef((props, ref) => {
   const [groups, setGroups] = useState([
     {
       id: 0, // ID único para el grupo por defecto
@@ -16,16 +16,15 @@ const CronogramaEmpleados = () => {
     },
   ]); // Grupo por defecto como encabezado
   const [items, setItems] = useState([]); // Sin ítems iniciales
-
-  const defaultTimeStart = moment().startOf("day").subtract(7, "days");
-  const defaultTimeEnd = moment().startOf("day").add(30, "days");
-
   const [selectedItemId, setSelectedItemId] = useState(null);
-
   const [comboBox1, setComboBox1] = useState("");
   const [comboBox2, setComboBox2] = useState("");
   const [dataForComboBox2, setDataForComboBox2] = useState([]);
   const [itemTitle, setItemTitle] = useState(1); // Valor inicial del input numérico
+
+  // Definir defaultTimeStart y defaultTimeEnd aquí, para que estén disponibles en todo el componente
+  const defaultTimeStart = moment().startOf("day").subtract(7, "days");
+  const defaultTimeEnd = moment().startOf("day").add(30, "days");
 
   useEffect(() => {
     if (comboBox1 === "indirecto") {
@@ -289,9 +288,29 @@ const CronogramaEmpleados = () => {
     );
   };
 
+  const exportData = () => {
+    const dataToExport = groups
+      .filter((group) => !group.isHeader) // Excluir el grupo de encabezado
+      .map((group) => ({
+        id: group.id,
+        title: group.title,
+        hrsXJor: group.hrsXJor,
+        jor: group.jor,
+        hrsNor: group.hrsNor,
+        jorExt: group.jorExt,
+        hrsExt: group.hrsExt,
+      }));
+
+    return dataToExport;
+  };
+
+  useImperativeHandle(ref, () => ({
+    exportData,
+  }));
+
   return (
     <div className="p-4">
-      <br/>
+      <br />
       <Grid container spacing={2} alignItems="center" marginBottom={2}>
         <Grid item xs={3}>
           <TextField
@@ -339,8 +358,8 @@ const CronogramaEmpleados = () => {
       <Timeline
         groups={groups}
         items={items}
-        defaultTimeStart={defaultTimeStart}
-        defaultTimeEnd={defaultTimeEnd}
+        defaultTimeStart={defaultTimeStart} // Aquí se usa defaultTimeStart
+        defaultTimeEnd={defaultTimeEnd} // Aquí se usa defaultTimeEnd
         timeSteps={{ day: 1, hour: 0, minute: 0, second: 0 }}
         lineHeight={30}
         traditionalZoom={false}
@@ -364,6 +383,6 @@ const CronogramaEmpleados = () => {
       />
     </div>
   );
-};
+});
 
 export default CronogramaEmpleados;
