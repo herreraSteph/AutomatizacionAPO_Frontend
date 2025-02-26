@@ -45,14 +45,12 @@ const CPC = () => {
   const [selectedNumero, setSelectedNumero] = useState("");
   const [tipoAcabado, setTipoAcabado] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [errors, setErrors] = useState({}); // Estado para manejar errores
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Obtener el valor de 'message' del localStorage
     const message = localStorage.getItem("message");
-
-    // Realizar la petición POST a la API
     fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/Consultar", {
       method: "POST",
       headers: {
@@ -62,7 +60,6 @@ const CPC = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        // Mapear la respuesta para obtener el formato deseado
         const formattedData = data.map((item) => ({
           id_numero: item.id_numero,
           nombre: item.nombre,
@@ -105,8 +102,44 @@ const CPC = () => {
   const handleDescripcionChange = (event) => {
     setDescripcion(event.target.value);
   };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!selectedNumero) {
+      newErrors.selectedNumero = "El número de proyecto es requerido.";
+    }
+    if (!tipoAcabado) {
+      newErrors.tipoAcabado = "El tipo de acabado es requerido.";
+    }
+    if (!descripcion) {
+      newErrors.descripcion = "La descripción es requerida.";
+    }
+    if (!placement) {
+      newErrors.placement = "El área es requerida.";
+    }
+    if (!edificio) {
+      newErrors.edificio = "El edificio es requerido.";
+    }
+    if (!equipoReferencia) {
+      newErrors.equipoReferencia = "El equipo de referencia es requerido.";
+    }
+    if (!ubicacion) {
+      newErrors.ubicacion = "La ubicación es requerida.";
+    }
+    if (!seguridadSeleccionada) {
+      newErrors.seguridadSeleccionada = "La condición de seguridad es requerida.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0; // Retorna true si no hay errores
+  };
+
   const handleSave = () => {
-    // Construir el objeto en el formato requerido por la API
+    if (!validateForm()) {
+      return; // Detener la ejecución si hay errores
+    }
+
     const requestBody = {
       idNumero: selectedNumero,
       tipoAcabados: tipoAcabado,
@@ -116,10 +149,9 @@ const CPC = () => {
       equipoReferencia: equipoReferencia,
       ubicacion: ubicacion,
       condicionSeguridad: seguridadSeleccionada,
-      disenios: selected, // Aquí se asume que `selected` es un array de strings
+      disenios: selected,
     };
-  
-    // Realizar la petición POST a la API
+    
     fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/CrearProyecto", {
       method: "POST",
       headers: {
@@ -130,13 +162,9 @@ const CPC = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log("Proyecto creado exitosamente:", data);
-  
-        // Guardar el valor de 'mensaje' en localStorage con el nombre 'idProyecto'
         if (data.mensaje) {
           localStorage.setItem("idProyecto", Number(data.mensaje));
         }
-  
-        // Navegar a la página de Cronograma
         navigate('/proyectos/cronograma');
       })
       .catch((error) => {
@@ -157,6 +185,7 @@ const CPC = () => {
                 onChange={(event) => setSelectedNumero(event.target.value)}
                 label="Nom. Act.O pry"
                 sx={{ backgroundColor: "#fffff" }}
+                error={!!errors.selectedNumero}
               >
                 {numeros.map((num, index) => (
                   <MenuItem key={index} value={num.id_numero}>
@@ -164,6 +193,7 @@ const CPC = () => {
                   </MenuItem>
                 ))}
               </Select>
+              {errors.selectedNumero && <Typography color="error">{errors.selectedNumero}</Typography>}
             </FormControl>
           </Grid>
 
@@ -177,6 +207,7 @@ const CPC = () => {
               value={tipoAcabado}
               onChange={handleTipoAcabadoChange}
               sx={{ backgroundColor: "#fffff" }}
+              error={!!errors.tipoAcabado}
             >
               <MenuItem value="ALQUIDALICO">ALQUIDALICO</MenuItem>
               <MenuItem value="AISLAMIENTO">AISLAMIENTO</MenuItem>
@@ -185,6 +216,7 @@ const CPC = () => {
               <MenuItem value="GALVANIZADO POR INMERSION EN CALIENTE">GALVANIZADO POR INMERSION EN CALIENTE</MenuItem>
               <MenuItem value="NA">NA</MenuItem>
             </TextField>
+            {errors.tipoAcabado && <Typography color="error">{errors.tipoAcabado}</Typography>}
           </Grid>
 
           {/* Detalles de Diseño y materiales en Anexo */}
@@ -241,7 +273,9 @@ const CPC = () => {
                 height: "100%",
                 marginTop: "-115px",
               }}
+              error={!!errors.descripcion}
             />
+            {errors.descripcion && <Typography color="error">{errors.descripcion}</Typography>}
           </Grid>
         </Grid>
       </MainCard>
@@ -258,6 +292,7 @@ const CPC = () => {
                 onChange={handlePlacementChange}
                 label="Area"
                 sx={{ backgroundColor: "#F2ECF5" }}
+                error={!!errors.placement}
               >
                 <MenuItem value="CRUSH">CRUSH</MenuItem>
                 <MenuItem value="CORN MILLING">CORN MILLING</MenuItem>
@@ -265,6 +300,7 @@ const CPC = () => {
                 <MenuItem value="EMPAQUE">EMPAQUE</MenuItem>
                 <MenuItem value="CONTRATISTAS">CONTRATISTAS</MenuItem>
               </Select>
+              {errors.placement && <Typography color="error">{errors.placement}</Typography>}
             </FormControl>
           </Grid>
 
@@ -277,6 +313,7 @@ const CPC = () => {
                 onChange={handleEdificioChange}
                 label="Edificio"
                 sx={{ backgroundColor: "#F2ECF5" }}
+                error={!!errors.edificio}
               >
                 <MenuItem value="PREPARACION">PREPARACION</MenuItem>
                 <MenuItem value="PRELIMPIA">PRELIMPIA</MenuItem>
@@ -304,6 +341,7 @@ const CPC = () => {
                 <MenuItem value="VELARIA">VELARIA</MenuItem>
                 <MenuItem value="DAF">DAF</MenuItem>
               </Select>
+              {errors.edificio && <Typography color="error">{errors.edificio}</Typography>}
             </FormControl>
           </Grid>
 
@@ -317,7 +355,9 @@ const CPC = () => {
                 label="Equipo de Referencia"
                 variant="outlined"
                 sx={{ backgroundColor: "#FFFFF" }}
+                error={!!errors.equipoReferencia}
               />
+              {errors.equipoReferencia && <Typography color="error">{errors.equipoReferencia}</Typography>}
             </FormControl>
           </Grid>
 
@@ -336,6 +376,7 @@ const CPC = () => {
                 <FormControlLabel value="Interior" control={<Radio />} label="Interior" />
                 <FormControlLabel value="Exterior" control={<Radio />} label="Exterior" />
               </RadioGroup>
+              {errors.ubicacion && <Typography color="error">{errors.ubicacion}</Typography>}
             </FormControl>
           </Grid>
         </Grid>
@@ -357,6 +398,7 @@ const CPC = () => {
                 <FormControlLabel value="Espacio confinado" control={<Radio />} label="Espacio confinado" />
                 <FormControlLabel value="Medidores atmosf." control={<Radio />} label="Medidores atmosf." />
               </RadioGroup>
+              {errors.seguridadSeleccionada && <Typography color="error">{errors.seguridadSeleccionada}</Typography>}
             </FormControl>
           </Grid>
         </Grid>

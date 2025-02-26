@@ -25,6 +25,7 @@ const CrearNumero = () => {
     prioridad: "",
   });
   const [representantes, setRepresentantes] = useState([]);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fechaCreacion = new Date().toISOString().split("T")[0];
@@ -63,9 +64,33 @@ const CrearNumero = () => {
   
     return `${getPart("year")}-${getPart("month")}-${getPart("day")}T${getPart("hour")}:${getPart("minute")}:${getPart("second")}.000Z`;
   };
-  
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.cliente) {
+      newErrors.cliente = "El cliente es requerido";
+    }
+    if (!formData.fechaInicio) {
+      newErrors.fechaInicio = "La fecha de inicio es requerida";
+    } else if (new Date(formData.fechaInicio) < new Date()) {
+      newErrors.fechaInicio = "La fecha de inicio no puede ser anterior a la fecha actual";
+    }
+    if (!formData.representante) {
+      newErrors.representante = "El representante es requerido";
+    }
+    if (!formData.prioridad) {
+      newErrors.prioridad = "La prioridad es requerida";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSave = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
     const idUsuario = localStorage.getItem("message");
 
@@ -122,29 +147,86 @@ const CrearNumero = () => {
           <TextField fullWidth label="Fecha de creación" type="date" variant="outlined" InputLabelProps={{ shrink: true }} InputProps={{ readOnly: true }} value={formData.fechaCreacion} />
         </Grid>
         <Grid item xs={12} sm={5}>
-          <TextField fullWidth label="Cliente" variant="outlined" select name="cliente" value={formData.cliente} onChange={handleChange}>
+          <TextField 
+            fullWidth 
+            label="Cliente" 
+            variant="outlined" 
+            select 
+            name="cliente" 
+            value={formData.cliente} 
+            onChange={handleChange}
+            error={!!errors.cliente}
+            helperText={errors.cliente}
+          >
             {data.clientes.map((cliente, index) => (
               <MenuItem key={index} value={cliente.nombre}>{cliente.nombre}</MenuItem>
             ))}
           </TextField>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <TextField fullWidth label="Fecha de inicio" type="date" variant="outlined" InputLabelProps={{ shrink: true }} name="fechaInicio" value={formData.fechaInicio} onChange={handleChange} />
+          <TextField 
+            fullWidth 
+            label="Fecha de inicio" 
+            type="date" 
+            variant="outlined" 
+            InputLabelProps={{ shrink: true }} 
+            name="fechaInicio" 
+            value={formData.fechaInicio} 
+            onChange={handleChange}
+            error={!!errors.fechaInicio}
+            helperText={errors.fechaInicio}
+          />
         </Grid>
         <Grid item xs={12} sm={4}>
-          <TextField fullWidth label="Representante" variant="outlined" select name="representante" value={formData.representante} onChange={handleChange} disabled={!formData.cliente}>
+          <TextField 
+            fullWidth 
+            label="Representante" 
+            variant="outlined" 
+            select 
+            name="representante" 
+            value={formData.representante} 
+            onChange={handleChange} 
+            disabled={!formData.cliente}
+            error={!!errors.representante}
+            helperText={errors.representante}
+          >
             {representantes.map((representante, index) => (
               <MenuItem key={index} value={representante}>{representante}</MenuItem>
             ))}
           </TextField>
         </Grid>
-        <Grid item xs={12} sm={3}>
-          <TextField fullWidth label="Prioridad" variant="outlined" select name="prioridad" value={formData.prioridad} onChange={handleChange}>
-            <MenuItem value="alta">Alta</MenuItem>
-            <MenuItem value="media">Media</MenuItem>
-            <MenuItem value="baja">Baja</MenuItem>
+        <Grid item xs={12} sm={3}> 
+          <TextField 
+            fullWidth 
+            label="Prioridad" 
+            variant="outlined" 
+            select 
+            name="prioridad" 
+            value={formData.prioridad} 
+            onChange={handleChange}
+            error={!!errors.prioridad}
+            helperText={errors.prioridad}
+            sx={{
+              '& .MuiOutlinedInput-input': {
+                color: formData.prioridad === "alta" ? "red" : 
+                formData.prioridad === "media" ? "#FFA500" : // Naranja fuerte
+                formData.prioridad === "baja" ? "green" : "inherit",
+                fontWeight: "normal", // Asegura que no haya negrita
+              }
+            }}
+          >
+            <MenuItem value="alta" sx={{ color: "red", fontWeight: "normal" }}>
+              Alta
+            </MenuItem>
+            <MenuItem value="media" sx={{ color: "#FFA500", fontWeight: "normal" }}>
+              Media
+            </MenuItem>
+            <MenuItem value="baja" sx={{ color: "green", fontWeight: "normal" }}>
+              Baja
+            </MenuItem>
           </TextField>
         </Grid>
+
         <Grid item xs={12} sm={2}>
           <Button fullWidth variant="contained" color="primary" sx={{ borderRadius: "50px" }} onClick={handleSave} disabled={loading}>
             {loading ? <CircularProgress size={24} color="inherit" /> : "Aceptar"}
