@@ -35,39 +35,9 @@ const UpgradePlanCard = () => {
           right: '-150px',
           ...cardSX
         },
-        '&:before': {
-          border: '3px solid ',
-          borderRadius: '50%',
-          top: '145px',
-          right: '-70px',
-          ...cardSX
-        }
       }}
     >
-      <CardContent>
-        <Grid container direction="column" spacing={2}>
-          <Grid item>
-            <Typography variant="h4">Upgrade your plan</Typography>
-          </Grid>
-          <Grid item>
-            <Typography variant="subtitle2" color={'grey.900'} sx={{ opacity: 0.6 }}>
-              70% discount for 1 years <br />
-              subscriptions.
-            </Typography>
-          </Grid>
-          <Grid item>
-            <Stack direction="row">
-              <Link sx={{ textDecoration: 'none' }} href="https://links.codedthemes.com/hsqll" target="_blank">
-                <AnimateButton>
-                  <Button variant="contained" color="warning" sx={{ boxShadow: 'none' }}>
-                    Go Premium
-                  </Button>
-                </AnimateButton>
-              </Link>
-            </Stack>
-          </Grid>
-        </Grid>
-      </CardContent>
+     
     </Card>
   );
 };

@@ -157,7 +157,7 @@ const Cronograma = () => {
             <Button
               variant="contained"
               sx={{
-                borderRadius: "20px", // Bordes redondeados
+                borderRadius: "5px", // Bordes redondeados
                 padding: "10px 20px",
                 backgroundColor: "#060336",
                 color: "white"
