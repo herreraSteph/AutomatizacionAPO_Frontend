@@ -24,6 +24,8 @@ const ManoObra = Loadable(lazy(() => import('views/Proyectos/AsignacionManoObra'
 const MaterialesGantt = Loadable(lazy(() => import('views/Proyectos/MaterialesGantt')));
 import RedirectComponent from "./RedirectComponent";
 const CPC = Loadable(lazy(() => import('views/Proyectos/CPC')));
+const TablaCompleta = Loadable(lazy(() => import('views/Proyectos/TablaCompleta')));
+const PreciosUnitarios = Loadable(lazy(() => import('views/Proyectos/PreciosUnitarios')));
 
 
 
@@ -104,7 +106,15 @@ const MainRoutes = {
         {
           path: 'CPC',
           element : <CPC />
-        }
+        },
+        {
+          path: 'TablaCompleta',
+          element : < TablaCompleta/>
+        },
+        {
+          path: 'PreciosUnitarios',
+          element : <PreciosUnitarios/>
+        },
       ]
     }
   ]

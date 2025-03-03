@@ -8,14 +8,15 @@ const icons = { IconBrandChrome, IconHelp };
 
 const other = {
   id: 'sample-docs-roadmap',
+  title: 'Documentación',
   type: 'group',
   children: [
    
     {
       id: 'documentation',
-      title: '',
+      title: 'dgfjfgjfhjf',
       type: 'item',
-      url: '',
+      url: '/dashboard/default',
     
       external: true,
       target: true
