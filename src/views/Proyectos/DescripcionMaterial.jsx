@@ -13,6 +13,8 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  TablePagination,
+  TextField,
 } from "@mui/material";
 import { agregarMaterial } from "../../api/Construccion";
 import { useNavigate } from "react-router-dom";
@@ -22,10 +24,12 @@ const DescripcionMaterial = () => {
   const [selectedOption2, setSelectedOption2] = useState("");
   const [selectedOption3, setSelectedOption3] = useState("");
   const [tableData, setTableData] = useState([]);
-  const [loading, setLoading] = useState(false); // Estado para el spinner
-  const [snackbarOpen, setSnackbarOpen] = useState(false); // Estado para el Snackbar
-  const [snackbarMessage, setSnackbarMessage] = useState(""); // Mensaje del Snackbar
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Severidad del Snackbar (success o error)
+  const [loading, setLoading] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Cambiado a 10 por defecto
   const navigate = useNavigate();
 
   const options1 = ["Opción 1", "Opción 2"];
@@ -68,7 +72,7 @@ const DescripcionMaterial = () => {
   };
 
   const handleSave = async () => {
-    setLoading(true); // Activar el spinner
+    setLoading(true);
     try {
       const materiales = tableData.map((row) => ({
         descripcion: row.descripcion,
@@ -84,7 +88,7 @@ const DescripcionMaterial = () => {
         setSnackbarOpen(true);
         setTimeout(() => {
           navigate("/");
-        }, 2000); // Redirige después de 2 segundos
+        }, 2000);
       } else {
         setSnackbarMessage("Hubo un error al guardar los materiales.");
         setSnackbarSeverity("error");
@@ -95,12 +99,29 @@ const DescripcionMaterial = () => {
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     } finally {
-      setLoading(false); // Desactivar el spinner
+      setLoading(false);
     }
   };
 
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleCantidadChange = (event, id) => {
+    const newCantidad = event.target.value;
+    const updatedTableData = tableData.map((row) =>
+      row.id === id ? { ...row, cantidad: newCantidad } : row
+    );
+    setTableData(updatedTableData);
   };
 
   return (
@@ -169,27 +190,45 @@ const DescripcionMaterial = () => {
         </div>
 
         {/* Tabla */}
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
           <Table>
-            <TableHead>
+            <TableHead sx={{ backgroundColor: "#060336" }}>
               <TableRow>
-                <TableCell>Id</TableCell>
-                <TableCell>Descripción del Material</TableCell>
-                <TableCell>Cantidad</TableCell>
-                <TableCell>Unidad</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Id</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Descripción del Material</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Cantidad</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Unidad</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {tableData.map((row) => (
-                <TableRow key={row.id}>
+              {tableData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
+                <TableRow key={row.id} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
                   <TableCell>{row.id}</TableCell>
                   <TableCell>{row.descripcion}</TableCell>
-                  <TableCell>{row.cantidad}</TableCell>
+                  <TableCell>
+                    <TextField
+                      type="number"
+                      value={row.cantidad}
+                      onChange={(event) => handleCantidadChange(event, row.id)}
+                      variant="outlined"
+                      size="small"
+                      sx={{ width: "100px" }}
+                    />
+                  </TableCell>
                   <TableCell>{row.unidad}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            rowsPerPageOptions={[10, 50, 60]} // Cambiado a 10, 50, 60
+            component="div"
+            count={tableData.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
         </TableContainer>
 
         {/* Botón Guardar y Descargar */}
@@ -197,14 +236,14 @@ const DescripcionMaterial = () => {
           <Button
             variant="contained"
             onClick={handleSave}
-            disabled={loading || tableData.length === 0} // Deshabilitar si está cargando o no hay datos
+            disabled={loading || tableData.length === 0}
             sx={{
               backgroundColor: "#060336",
               color: "white",
               padding: "8px 20px",
               fontSize: "0.9rem",
               borderRadius: "20px",
-              minWidth: "120px", // Para que no cambie de tamaño al mostrar el spinner
+              minWidth: "120px",
             }}
           >
             {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Guardar"}

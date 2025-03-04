@@ -1,10 +1,16 @@
-import { Box, Typography, useMediaQuery, useTheme } from "@mui/material"; 
-import React from "react";
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
+import React, { useEffect, useState } from "react";
 import fondo from "../../assets/images/Registro/fondo.png";
 
 const Banner = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Activar animaciones después de que el componente se monta
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
 
   return (
     <Box
@@ -13,7 +19,9 @@ const Banner = () => {
         width: "100%",
         display: "flex",
         flexDirection: isMobile ? "column" : "row",
-        backgroundColor: "#FFFFFF", // Fondo blanco
+        backgroundColor: "#FFFFFF",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
       {/* Sección de texto */}
@@ -23,29 +31,26 @@ const Banner = () => {
           height: "100vh",
           display: "flex",
           flexDirection: "column",
-          justifyContent: "flex-start", // Mueve el contenido más arriba
+          justifyContent: "center",
           alignItems: "center",
-          padding: isMobile ? "40px 20px" : "60px 40px", // Ajuste de padding
+          padding: isMobile ? "40px 20px" : "60px 40px",
           textAlign: "center",
-          marginTop: isMobile ? "30px" : "100px", // Ajusta el margen superior para mover el contenido hacia abajo
-          maxWidth: isMobile ? "100%" : "90%", // Limita el ancho del contenedor de texto en pantallas grandes
-          overflow: "hidden", // Asegura que el texto no se desborde
+          zIndex: 2,
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? "translateY(0)" : "translateY(50px)",
+          transition: "opacity 0.8s ease, transform 0.8s ease",
         }}
       >
         <Typography
           variant="h2"
           sx={{
-            fontFamily: "'Merriweather', serif", // Cambiado a Merriweather
+            fontFamily: "'Merriweather', serif",
             fontWeight: "bold",
-            fontSize: isMobile ? "2.5rem" : "4rem", // Aumento el tamaño del título en pantallas grandes
+            fontSize: isMobile ? "2.5rem" : "4rem",
             color: "#1E3A3A",
-            marginBottom: "10px",
-            lineHeight: 1.2, // Ajusta la altura de línea para más espacio
-            overflowWrap: "break-word", // Permite que el texto se ajuste y no se desborde
-            wordBreak: "break-word", // Divide las palabras largas que puedan desbordarse
-            width: "100%", // Asegura que el título ocupe todo el espacio disponible
-            paddingLeft: isMobile ? "20px" : "40px", // Asegura que haya espacio al costado izquierdo
-            paddingRight: isMobile ? "20px" : "40px", // Asegura que haya espacio al costado derecho
+            marginBottom: "20px",
+            lineHeight: 1.2,
+            textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)",
           }}
         >
           Bienvenido Serman
@@ -55,9 +60,10 @@ const Banner = () => {
           variant="h6"
           sx={{
             fontStyle: "italic",
-            fontSize: isMobile ? "0.7rem" : "1rem", // Reduce el tamaño de la frase
+            fontSize: isMobile ? "0.9rem" : "1.2rem",
             color: "#4A7C7C",
-            marginTop: "10px", // Añade un poco de espacio entre el título y la frase
+            marginTop: "10px",
+            textShadow: "1px 1px 2px rgba(0, 0, 0, 0.1)",
           }}
         >
           "Tu trabajo va a llenar gran parte de tu vida, la única forma de estar realmente satisfecho es
@@ -75,6 +81,19 @@ const Banner = () => {
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
           position: "relative",
+          zIndex: 1,
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? "translateX(0)" : "translateX(50px)",
+          transition: "opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(255, 255, 255, 0.3)",
+          },
         }}
       />
     </Box>
