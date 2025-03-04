@@ -2,10 +2,8 @@ import React, { useState, useEffect, useImperativeHandle } from "react";
 import Timeline from "react-calendar-timeline";
 import "react-calendar-timeline/dist/style.css";
 import moment from "moment";
-import indirecto from "../../../data/Indirecto-items";
-import taller from "../../../data/Taller-items";
-import cargill from "../../../data/Cargill-items";
-import { Grid, TextField, MenuItem} from "@mui/material";
+import { Grid, TextField, MenuItem } from "@mui/material";
+import { obtenerEmpleados } from "../../../api/Construccion";
 
 const CronogramaEmpleados = React.forwardRef((props, ref) => {
   const [groups, setGroups] = useState([
@@ -27,14 +25,18 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
   const defaultTimeEnd = moment().startOf("day").add(30, "days");
 
   useEffect(() => {
-    if (comboBox1 === "indirecto") {
-      setDataForComboBox2(indirecto);
-    } else if (comboBox1 === "taller") {
-      setDataForComboBox2(taller);
-    } else if (comboBox1 === "cargill") {
-      setDataForComboBox2(cargill);
+    if (comboBox1) {
+      // Llamar a la API para obtener los empleados según la opción seleccionada
+      obtenerEmpleados(comboBox1)
+        .then((response) => {
+          setDataForComboBox2(response); // Asignar los datos obtenidos al segundo combobox
+        })
+        .catch((error) => {
+          console.error("Error al obtener empleados:", error);
+          setDataForComboBox2([]); // Limpiar el combobox en caso de error
+        });
     } else {
-      setDataForComboBox2([]);
+      setDataForComboBox2([]); // Limpiar el combobox si no hay opción seleccionada
     }
   }, [comboBox1]);
 
@@ -221,32 +223,22 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
     const selectedValue = e.target.value;
     setComboBox2(selectedValue);
 
-    var selectedObject = null;
-    if (comboBox1 === "indirecto") {
-      selectedObject = indirecto.find((item) => item.label === selectedValue);
-    } else if (comboBox1 === "taller") {
-      selectedObject = taller.find((item) => item.label === selectedValue);
-    } else if (comboBox1 === "cargill") {
-      selectedObject = cargill.find((item) => item.label === selectedValue);
-    }
+    const selectedObject = dataForComboBox2.find((item) => item.nombre === selectedValue);
 
     if (!selectedObject) return;
-    // Verifica si el grupo ya existe
-    const groupExists = groups.some((group) => group.title === selectedObject.label);
 
-    if (!groupExists) {
-      // Agrega un nuevo grupo con un ID único y las nuevas propiedades
-      const newGroup = {
-        id: groups.length, // Usamos el length para evitar conflictos con el grupo por defecto
-        title: selectedObject.label,
-        hrsXJor: selectedObject.hrs_x_jor, // Valor inicial
-        jor: 0, // Valor inicial
-        hrsNor: 0, // Valor inicial
-        jorExt: 0, // Valor inicial
-        hrsExt: 0, // Valor inicial
-      };
-      setGroups((prevGroups) => [...prevGroups, newGroup]);
-    }
+    // Agrega un nuevo grupo con un ID único
+    const newGroup = {
+      id: groups.length, // Usamos el length para evitar conflictos con el grupo por defecto
+      title: selectedObject.nombre,
+      hrsXJor: selectedObject.hrsxjor, // Valor inicial
+      jor: 0, // Valor inicial
+      hrsNor: 0, // Valor inicial
+      jorExt: 0, // Valor inicial
+      hrsExt: 0, // Valor inicial
+      id_empleado: selectedObject.id_empleado, // ID del empleado
+    };
+    setGroups((prevGroups) => [...prevGroups, newGroup]);
   };
 
   const groupRenderer = ({ group }) => {
@@ -289,11 +281,11 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
   };
 
   const exportData = () => {
-    const dataToExport = groups
+    const groupsToExport = groups
       .filter((group) => !group.isHeader) // Excluir el grupo de encabezado
       .map((group) => ({
         id: group.id,
-        title: group.title,
+        title: group.id_empleado.toString(),
         hrsXJor: group.hrsXJor,
         jor: group.jor,
         hrsNor: group.hrsNor,
@@ -301,7 +293,17 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
         hrsExt: group.hrsExt,
       }));
 
-    return dataToExport;
+    const itemsToExport = items.map((item) => ({
+      group: item.group,
+      title: item.title,
+      start_time: item.start_time,
+      end_time: item.end_time,
+    }));
+
+    return {
+      groups: groupsToExport,
+      items: itemsToExport,
+    };
   };
 
   useImperativeHandle(ref, () => ({
@@ -321,9 +323,9 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
             fullWidth
             variant="outlined"
           >
-            <MenuItem value="indirecto">Indirecto</MenuItem>
-            <MenuItem value="taller">Horas Taller</MenuItem>
-            <MenuItem value="cargill">Horas Cargill</MenuItem>
+            <MenuItem value={1}>Indirecto</MenuItem>
+            <MenuItem value={2}>Horas Taller</MenuItem>
+            <MenuItem value={3}>Horas Cargill</MenuItem>
           </TextField>
         </Grid>
         <Grid item xs={3}>
@@ -336,8 +338,8 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
             variant="outlined"
           >
             {dataForComboBox2.map((item) => (
-              <MenuItem key={item.key} value={item.label}>
-                {item.label}
+              <MenuItem key={item.id_empleado} value={item.nombre}>
+                {item.nombre}
               </MenuItem>
             ))}
           </TextField>

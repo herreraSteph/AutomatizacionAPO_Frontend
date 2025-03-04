@@ -31,6 +31,7 @@ const AsignacionManoObra = () => {
         }else{
           console.error("Error al enviar los datos:", response.mensaje);
         }
+       console.log(datos);
       }catch(error){
         console.error('Error al agregar empleados:', error);
       }finally{  

@@ -11,10 +11,11 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import MainCard from "ui-component/cards/MainCard";
 import data from "../../data/clientes";
+import { obtenerUltimoNumero } from "../../api/Construccion";
 
 const CrearNumero = () => {
   const navigate = useNavigate();
-  const [numero, setNumero] = useState("SM25-005");
+  const [numero, setNumero] = useState(""); // Inicialmente vacío
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,6 +27,19 @@ const CrearNumero = () => {
   });
   const [representantes, setRepresentantes] = useState([]);
   const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const fetchUltimoNumero = async () => {
+      try {
+        const ultimoNumero = await obtenerUltimoNumero();
+        setNumero(ultimoNumero.nombre); // Actualiza el estado con el último número obtenido
+      } catch (error) {
+        console.error("Error al obtener el último número:", error);
+      }
+    };
+
+    fetchUltimoNumero();
+  }, []); // Se ejecuta solo una vez al montar el componente
 
   useEffect(() => {
     const fechaCreacion = new Date().toISOString().split("T")[0];
@@ -64,6 +78,7 @@ const CrearNumero = () => {
   
     return `${getPart("year")}-${getPart("month")}-${getPart("day")}T${getPart("hour")}:${getPart("minute")}:${getPart("second")}.000Z`;
   };
+
   const validateForm = () => {
     const newErrors = {};
 
