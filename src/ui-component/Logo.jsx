@@ -9,7 +9,7 @@ const Logo = () => {
   const theme = useTheme();
 
   return (
-    <img src={logo} alt="Berry" width="75" />
+    <img src={logo} alt="Berry" width="85" />
     
   );
 };

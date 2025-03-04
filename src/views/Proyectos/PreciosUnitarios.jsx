@@ -11,6 +11,7 @@ import {
   TextField,
   IconButton,
   Popover,
+  Typography, // Importa Typography de Material-UI
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícono de filtro
 import ArchiveIcon from "@mui/icons-material/Archive"; // Ícono de archivo
@@ -123,8 +124,13 @@ const PreciosUnitarios = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "40px" }}>
       <Paper sx={{ padding: 2, borderRadius: 2 }}>
+        {/* Título "Lista de Números Generados" */}
+        <Typography variant="h5" sx={{ marginBottom: 3, textAlign: "center", fontWeight: "bold" }}>
+          Lista de Números Generados
+        </Typography>
+
         {/* Tabla */}
         <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
           <Table>

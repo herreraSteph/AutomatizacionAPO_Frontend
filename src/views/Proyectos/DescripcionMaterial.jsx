@@ -29,7 +29,7 @@ const DescripcionMaterial = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10); // Cambiado a 10 por defecto
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const navigate = useNavigate();
 
   const options1 = ["Opción 1", "Opción 2"];
@@ -120,6 +120,14 @@ const DescripcionMaterial = () => {
     const newCantidad = event.target.value;
     const updatedTableData = tableData.map((row) =>
       row.id === id ? { ...row, cantidad: newCantidad } : row
+    );
+    setTableData(updatedTableData);
+  };
+
+  const handleUnidadChange = (event, id) => {
+    const newUnidad = event.target.value;
+    const updatedTableData = tableData.map((row) =>
+      row.id === id ? { ...row, unidad: newUnidad } : row
     );
     setTableData(updatedTableData);
   };
@@ -215,13 +223,21 @@ const DescripcionMaterial = () => {
                       sx={{ width: "100px" }}
                     />
                   </TableCell>
-                  <TableCell>{row.unidad}</TableCell>
+                  <TableCell>
+                    <TextField
+                      value={row.unidad}
+                      onChange={(event) => handleUnidadChange(event, row.id)}
+                      variant="outlined"
+                      size="small"
+                      sx={{ width: "100px" }}
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
           <TablePagination
-            rowsPerPageOptions={[10, 50, 60]} // Cambiado a 10, 50, 60
+            rowsPerPageOptions={[10, 50, 60]}
             component="div"
             count={tableData.length}
             rowsPerPage={rowsPerPage}

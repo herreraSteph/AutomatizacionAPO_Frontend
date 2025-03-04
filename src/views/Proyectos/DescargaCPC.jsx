@@ -7,15 +7,16 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Button,
   TablePagination,
   TextField,
   IconButton,
   Popover,
+  Typography, // Importa Typography de Material-UI
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícono de filtro
+import ArchiveIcon from "@mui/icons-material/Archive"; // Ícono de archivo
 
-const TablaCompleta = () => {
+const DescargaCPC = () => {
   // Datos estáticos de la tabla
   const [tableData] = useState([
     {
@@ -70,9 +71,14 @@ const TablaCompleta = () => {
     setPage(0);
   };
 
-  const handleVisualizar = () => {
-    // Redirigir a la URL especificada
-    window.location.href = "http://localhost:3000/Serman/proyectos/CPC";
+  const handleDescargar = () => {
+    // Simulación de descarga
+    const link = document.createElement("a");
+    link.href = "https://example.com/file.pdf"; // URL del archivo a descargar
+    link.download = "archivo.pdf"; // Nombre del archivo
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleFilterClick = (event, filterName) => {
@@ -118,10 +124,12 @@ const TablaCompleta = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "40px" }}>
       <Paper sx={{ padding: 2, borderRadius: 2 }}>
-        {/* Título "Lista de Números Existentes" */}
-        <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Numeros Creados</h1>
+        {/* Título "Lista de Números Generados" */}
+        <Typography variant="h5" sx={{ marginBottom: 3, textAlign: "center", fontWeight: "bold", fontSize: '2rem' }}>
+          Lista de CPC Generados
+        </Typography>
 
         {/* Tabla */}
         <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
@@ -157,7 +165,7 @@ const TablaCompleta = () => {
                 {/* Cliente con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    Cliente 
+                    Cliente
                     <IconButton
                       size="small"
                       onClick={(e) => handleFilterClick(e, "cliente")}
@@ -170,7 +178,7 @@ const TablaCompleta = () => {
                 {/* Fecha de Inicio con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    Fecha de Inicio 
+                    Fecha de Inicio
                     <IconButton
                       size="small"
                       onClick={(e) => handleFilterClick(e, "fechaInicio")}
@@ -196,7 +204,7 @@ const TablaCompleta = () => {
                 {/* Prioridad con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    Prioridad 
+                    Prioridad
                     <IconButton
                       size="small"
                       onClick={(e) => handleFilterClick(e, "prioridad")}
@@ -206,7 +214,7 @@ const TablaCompleta = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Crear CPC</TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Descargar</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -226,19 +234,12 @@ const TablaCompleta = () => {
                     {row.prioridad}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outlined"
-                      onClick={handleVisualizar}
-                      sx={{
-                        borderColor: "#060336",
-                        color: "#060336",
-                        padding: "5px 10px",
-                        fontSize: "0.8rem",
-                        borderRadius: "20px",
-                      }}
+                    <IconButton
+                      onClick={handleDescargar}
+                      sx={{ color: "#060336" }} // Color del ícono
                     >
-                      CPC
-                    </Button>
+                      <ArchiveIcon />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}
@@ -284,4 +285,4 @@ const TablaCompleta = () => {
   );
 };
 
-export default TablaCompleta;
+export default DescargaCPC;

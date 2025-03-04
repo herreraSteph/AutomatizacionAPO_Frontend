@@ -2,11 +2,16 @@ import dashboard from './dashboard';
 import pages from './pages';
 import other from './other';
 import proyectos from './proyectos';
-import utilities from './utilities';
+
+import ProcesosUnitarios from './ProcesosUnitarios';
 
 // ==============================|| MENU ITEMS ||============================== //
 const menuItems = {
-  items: [dashboard, , proyectos, ]
+  items: [dashboard,  proyectos,ProcesosUnitarios ]
+ 
 };
+
+ 
+
 
 export default menuItems;
