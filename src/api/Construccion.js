@@ -71,7 +71,8 @@ export const agregarEmpleados = async (empleados) => {
     obtenerIdProyecto();
     const requestBody = {
       idProyecto: idProyecto,
-      groups: empleados,
+      groups: empleados.groups,
+      items: empleados.items,
     };
     const response = await axios.post(`${API_URL}/AgregarEmpleados`, requestBody,{
       headers:{
@@ -91,7 +92,8 @@ export const agregarEquipo = async (equipo) => {
     obtenerIdProyecto();
     const requestBody = {
       idProyecto: idProyecto,
-      groups: equipo,
+      groups: equipo.groups,
+      items: equipo.items,
     };
     const response = await axios.post(`${API_URL}/AgregarEquipo`, requestBody,{
       headers:{
@@ -122,6 +124,33 @@ export const agregarMaterial = async (material) => {
 
   }catch(error){
     console.error('Error al agregar empleados:', error);
+    throw error;
+  }
+}
+
+export const obtenerUltimoNumero = async () => {
+  try{
+    const response = await axios.post(`${API_URL}/ObtenerUltimoNumero`);
+    return response.data;
+  }catch(error){
+    console.error('Error al agregar empleados:', error);
+    throw error;
+  }
+}
+
+export const obtenerEmpleados = async (tipoEmpleado) => {
+  try{
+    const requestBody = {
+      id: tipoEmpleado
+    }
+    const response = await axios.post(`${API_URL}/ObtenerEmpleados`, requestBody,{
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener empleados:', error);
     throw error;
   }
 }

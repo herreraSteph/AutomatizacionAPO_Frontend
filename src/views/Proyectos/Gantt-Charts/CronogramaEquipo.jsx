@@ -262,34 +262,44 @@ const CronogramaEquipo = React.forwardRef((props, ref) => {
     );
   };
 
-    const exportData = () => {
-      const dataToExport = groups
-        .filter((group) => !group.isHeader) // Excluir el grupo de encabezado
-        .map((group) => ({
-          id: group.id,
-          title: group.title,
-          hrsXJor: group.hrsXJor,
-          jor: group.jor,
-          hrsNor: group.hrsNor,
-          jorExt: group.jorExt,
-          hrsExt: group.hrsExt,
-        }));
-  
-      return dataToExport;
-    };
-  
-    useImperativeHandle(ref, () => ({
-      exportData,
+  const exportData = () => {
+    const groupsToExport = groups
+      .filter((group) => !group.isHeader) // Excluir el grupo de encabezado
+      .map((group) => ({
+        id: group.id,
+        title: group.title,
+        hrsXJor: group.hrsXJor,
+        jor: group.jor,
+        hrsNor: group.hrsNor,
+        jorExt: group.jorExt,
+        hrsExt: group.hrsExt,
+      }));
+
+    const itemsToExport = items.map((item) => ({
+      group: item.group,
+      title: item.title,
+      start_time: item.start_time,
+      end_time: item.end_time,
     }));
+
+    return {
+      groups: groupsToExport,
+      items: itemsToExport,
+    };
+  };
+
+  useImperativeHandle(ref, () => ({
+    exportData,
+  }));
 
   return (
     <div className="p-4">
-      <br/>
+      <br />
       <Grid container spacing={2} alignItems="center" marginBottom={2}>
-      <Grid item xs={2}>
+        <Grid item xs={2}>
           <TextField
             type="number"
-            label="Numero de jornada"
+            label="Número de jornada"
             value={itemTitle}
             onChange={(e) => setItemTitle(Number(e.target.value))}
             fullWidth
