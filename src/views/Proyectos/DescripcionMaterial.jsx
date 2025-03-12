@@ -193,7 +193,7 @@ const DescripcionMaterial = () => {
               borderRadius: "20px",
             }}
           >
-            Agregar a la tabla
+            Agregar a la Tabla
           </Button>
         </div>
 

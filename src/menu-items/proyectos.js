@@ -33,7 +33,7 @@ const proyectos = {
     },
     {
       id: 'TablaCompleta',
-      title: 'CPC',
+      title: 'Numeros Creados',
       type: 'item',
       url: '/proyectos/TablaCompleta',
       icon: icons.AddchartIcon,

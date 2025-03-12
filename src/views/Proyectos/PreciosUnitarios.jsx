@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -11,43 +11,15 @@ import {
   TextField,
   IconButton,
   Popover,
-  Typography, // Importa Typography de Material-UI
+  Typography,
 } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList"; // Ícono de filtro
-import ArchiveIcon from "@mui/icons-material/Archive"; // Ícono de archivo
+import FilterListIcon from "@mui/icons-material/FilterList";
+import ArchiveIcon from "@mui/icons-material/Archive";
+import { ObtenerNumeros } from "../../api/PreciosUnitarios";
 
 const PreciosUnitarios = () => {
-  // Datos estáticos de la tabla
-  const [tableData] = useState([
-    {
-      id: 1,
-      nombreActividad: "Actividad 1",
-      fechaCreacion: "01/01/2023",
-      cliente: "Cliente A",
-      fechaInicio: "10/01/2023",
-      representante: "Representante X",
-      prioridad: "Alta",
-    },
-    {
-      id: 2,
-      nombreActividad: "Actividad 2",
-      fechaCreacion: "02/01/2023",
-      cliente: "Cliente B",
-      fechaInicio: "11/01/2023",
-      representante: "Representante Y",
-      prioridad: "Media",
-    },
-    {
-      id: 3,
-      nombreActividad: "Actividad 3",
-      fechaCreacion: "03/01/2023",
-      cliente: "Cliente C",
-      fechaInicio: "12/01/2023",
-      representante: "Representante Z",
-      prioridad: "Baja",
-    },
-    // Puedes agregar más datos aquí
-  ]);
+  // Estado inicial de los datos de la tabla (vacío)
+  const [tableData, setTableData] = useState([]);
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -61,6 +33,40 @@ const PreciosUnitarios = () => {
   });
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("");
+
+  // Función para formatear fechas en formato día/mes/año
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  // Llamar a la API para obtener los datos cuando el componente se monta
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await ObtenerNumeros();
+        // Mapear los datos de la API al formato que espera la tabla
+        const mappedData = response.map((item) => ({
+          id: item.id_numero,
+          nombreActividad: item.nombre,
+          fechaCreacion: formatDate(item.fecha_creacion), // Formatear fecha
+          cliente: item.cliente,
+          fechaInicio: formatDate(item.fecha_inicio), // Formatear fecha
+          representante: item.representante,
+          prioridad: item.prioridad,
+        }));
+        setTableData(mappedData);
+      } catch (error) {
+        console.error("Error al obtener los datos:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -277,6 +283,8 @@ const PreciosUnitarios = () => {
               value={filters[currentFilter] || ""}
               onChange={handleFilterChange}
               size="small"
+             
+              
             />
           </div>
         </Popover>

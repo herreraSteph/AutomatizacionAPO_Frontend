@@ -250,7 +250,7 @@ const CrearNumero = () => {
       </Grid>
       <Dialog open={dialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Éxito</DialogTitle>
-        <DialogContent>El número se ha creado con éxito</DialogContent>
+        <DialogContent>El Número se ha Creado con Exito</DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="primary">Aceptar</Button>
         </DialogActions>
