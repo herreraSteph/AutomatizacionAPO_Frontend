@@ -4,10 +4,15 @@ import "react-calendar-timeline/dist/style.css";
 import moment from "moment";
 import { Grid, TextField, Button } from "@mui/material";
 
+// Función para generar un ID aleatorio de 7 dígitos
+const generateRandomId = () => {
+  return Math.floor(1000000 + Math.random() * 9000000); // Genera un número aleatorio de 7 dígitos
+};
+
 const CronogramaEquipo = React.forwardRef((props, ref) => {
   const [groups, setGroups] = useState([
     {
-      id: 0, // ID único para el grupo por defecto
+      id: generateRandomId(), // ID único generado aleatoriamente para el grupo por defecto
       title: "Encabezado", // Título del grupo por defecto
       isHeader: true, // Propiedad para identificar el grupo de encabezado
     },
@@ -182,7 +187,7 @@ const CronogramaEquipo = React.forwardRef((props, ref) => {
 
     const newItem = {
       id: items.length + 1,
-      group: groupId,
+      group: groupId, // Usa el ID del grupo generado aleatoriamente
       title: itemTitle.toString(), // Usa el valor del input numérico como título
       start_time: startOfDay,
       end_time: endOfDay, // Duración de 1 día
@@ -208,9 +213,12 @@ const CronogramaEquipo = React.forwardRef((props, ref) => {
     const groupExists = groups.some((group) => group.title === inputValue);
 
     if (!groupExists) {
+      // Genera un ID aleatorio de 7 dígitos para el nuevo grupo
+      const newGroupId = generateRandomId();
+
       // Agrega un nuevo grupo con un ID único y las nuevas propiedades
       const newGroup = {
-        id: groups.length, // Usamos el length para evitar conflictos con el grupo por defecto
+        id: newGroupId, // Usamos el ID generado aleatoriamente
         title: inputValue,
         hrsXJor: 8, // Valor inicial por defecto
         jor: 0, // Valor inicial
