@@ -15,10 +15,9 @@ import {
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ArchiveIcon from "@mui/icons-material/Archive";
-import { ObtenerNumeros } from "../../api/PreciosUnitarios";
+import { ObtenerCPC } from "../../api/Construccion";
 
-const PreciosUnitarios = () => {
-  // Estado inicial de los datos de la tabla (vacío)
+const DescargaCPC = () => {
   const [tableData, setTableData] = useState([]);
 
   const [page, setPage] = useState(0);
@@ -34,7 +33,7 @@ const PreciosUnitarios = () => {
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("");
 
-  // Función para formatear fechas en formato día/mes/año
+  // Función para formatear fechas en formato DD/MM/YYYY
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("es-ES", {
@@ -44,28 +43,30 @@ const PreciosUnitarios = () => {
     });
   };
 
-  // Llamar a la API para obtener los datos cuando el componente se monta
   useEffect(() => {
-    const fetchData = async () => {
+    const obtenerDatosCPC = async () => {
       try {
-        const response = await ObtenerNumeros();
-        // Mapear los datos de la API al formato que espera la tabla
-        const mappedData = response.map((item) => ({
+        const datosCPC = await ObtenerCPC(true);////////////////////////
+        console.log("Datos obtenidos de ObtenerCPC:", datosCPC);
+
+        // Transformar y formatear los datos
+        const datosTransformados = datosCPC.map((item) => ({
           id: item.id_numero,
           nombreActividad: item.nombre,
-          fechaCreacion: formatDate(item.fecha_creacion), // Formatear fecha
+          fechaCreacion: formatDate(item.fecha_creacion), // Formatear fecha_creacion
           cliente: item.cliente,
-          fechaInicio: formatDate(item.fecha_inicio), // Formatear fecha
+          fechaInicio: formatDate(item.fecha_inicio), // Formatear fecha_inicio
           representante: item.representante,
           prioridad: item.prioridad,
         }));
-        setTableData(mappedData);
+
+        setTableData(datosTransformados);
       } catch (error) {
-        console.error("Error al obtener los datos:", error);
+        console.error("Error al obtener los datos de CPC:", error);
       }
     };
 
-    fetchData();
+    obtenerDatosCPC();
   }, []);
 
   const handleChangePage = (event, newPage) => {
@@ -78,10 +79,9 @@ const PreciosUnitarios = () => {
   };
 
   const handleDescargar = () => {
-    // Simulación de descarga
     const link = document.createElement("a");
-    link.href = "https://example.com/file.pdf"; // URL del archivo a descargar
-    link.download = "archivo.pdf"; // Nombre del archivo
+    link.href = "https://example.com/file.pdf";
+    link.download = "archivo.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -115,34 +115,30 @@ const PreciosUnitarios = () => {
     );
   });
 
-  // Función para obtener el color del texto según la prioridad
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "Alta":
-        return "#ff0000"; // Rojo
+        return "#ff0000";
       case "Media":
-        return "#ff9900"; // Naranja
+        return "#ff9900";
       case "Baja":
-        return "#00cc00"; // Verde
+        return "#00cc00";
       default:
-        return "#000000"; // Negro por defecto
+        return "#000000";
     }
   };
 
   return (
     <div style={{ padding: "40px" }}>
       <Paper sx={{ padding: 2, borderRadius: 2 }}>
-        {/* Título "Lista de Números Generados" */}
-        <Typography variant="h5" sx={{ marginBottom: 3, textAlign: "center", fontWeight: "bold" }}>
-          Lista de Números Generados
+        <Typography variant="h5" sx={{ marginBottom: 3, textAlign: "center", fontWeight: "bold", fontSize: '2rem' }}>
+          Lista de CPC Generados
         </Typography>
 
-        {/* Tabla */}
         <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
           <Table>
             <TableHead sx={{ backgroundColor: "#060336" }}>
               <TableRow>
-                {/* Nom.Act.O.Pry con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     Nom.Act.O.Pry
@@ -155,7 +151,6 @@ const PreciosUnitarios = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Fecha de Creación con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     Fecha de Creación
@@ -168,7 +163,6 @@ const PreciosUnitarios = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Cliente con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     Cliente
@@ -181,7 +175,6 @@ const PreciosUnitarios = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Fecha de Inicio con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     Fecha de Inicio
@@ -194,7 +187,6 @@ const PreciosUnitarios = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Representante con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     Representante
@@ -207,7 +199,6 @@ const PreciosUnitarios = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Prioridad con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     Prioridad
@@ -233,7 +224,7 @@ const PreciosUnitarios = () => {
                   <TableCell>{row.representante}</TableCell>
                   <TableCell
                     sx={{
-                      color: getPriorityColor(row.prioridad), // Color del texto
+                      color: getPriorityColor(row.prioridad),
                       fontWeight: "bold",
                     }}
                   >
@@ -242,7 +233,7 @@ const PreciosUnitarios = () => {
                   <TableCell>
                     <IconButton
                       onClick={handleDescargar}
-                      sx={{ color: "#060336" }} // Color del ícono
+                      sx={{ color: "#060336" }}
                     >
                       <ArchiveIcon />
                     </IconButton>
@@ -262,7 +253,6 @@ const PreciosUnitarios = () => {
           />
         </TableContainer>
 
-        {/* Popover para filtros */}
         <Popover
           open={Boolean(filterAnchorEl)}
           anchorEl={filterAnchorEl}
@@ -283,8 +273,6 @@ const PreciosUnitarios = () => {
               value={filters[currentFilter] || ""}
               onChange={handleFilterChange}
               size="small"
-             
-              
             />
           </div>
         </Popover>
@@ -293,4 +281,4 @@ const PreciosUnitarios = () => {
   );
 };
 
-export default PreciosUnitarios;
+export default DescargaCPC;

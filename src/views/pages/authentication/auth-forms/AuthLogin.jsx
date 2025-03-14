@@ -59,7 +59,8 @@ const AuthLogin = ({ ...others }) => {
       console.log('Respuesta de la API:', response.data);
 
       localStorage.setItem('message', response.data.mensaje);
-
+      localStorage.setItem('rol', response.data.rol);
+      localStorage.setItem('tipo error:', response.data.tipoError);
       window.location.href = "http://localhost:3000/Serman/dashboard/default";
     } catch (error) {
       if (error.response) {

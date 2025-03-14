@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -14,39 +14,11 @@ import {
   Popover,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícono de filtro
+import { ObtenerCPC } from "../../api/Construccion";///
 
 const TablaCompleta = () => {
-  // Datos estáticos de la tabla
-  const [tableData] = useState([
-    {
-      id: 1,
-      nombreActividad: "Actividad 1",
-      fechaCreacion: "01/01/2023",
-      cliente: "Cliente A",
-      fechaInicio: "10/01/2023",
-      representante: "Representante X",
-      prioridad: "Alta",
-    },
-    {
-      id: 2,
-      nombreActividad: "Actividad 2",
-      fechaCreacion: "02/01/2023",
-      cliente: "Cliente B",
-      fechaInicio: "11/01/2023",
-      representante: "Representante Y",
-      prioridad: "Media",
-    },
-    {
-      id: 3,
-      nombreActividad: "Actividad 3",
-      fechaCreacion: "03/01/2023",
-      cliente: "Cliente C",
-      fechaInicio: "12/01/2023",
-      representante: "Representante Z",
-      prioridad: "Baja",
-    },
-    // Puedes agregar más datos aquí
-  ]);
+  // Estado para almacenar los datos de la tabla
+  const [tableData, setTableData] = useState([]); // Inicializa con un array vacío
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -60,6 +32,38 @@ const TablaCompleta = () => {
   });
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("");
+
+  useEffect(() => {
+    const obtenerDatosCPC = async () => {
+      try {
+        const datosCPC = await ObtenerCPC(false); // Obtener datos de la API
+        console.log("Datos obtenidos de ObtenerCPC:", datosCPC);
+
+        // Transformar y formatear los datos
+        const datosTransformados = datosCPC.map((item) => ({
+          id: item.id_numero,
+          nombreActividad: item.nombre,
+          fechaCreacion: formatDate(item.fecha_creacion), // Formatear fecha_creacion
+          cliente: item.cliente,
+          fechaInicio: formatDate(item.fecha_inicio), // Formatear fecha_inicio
+          representante: item.representante,
+          prioridad: item.prioridad,
+        }));
+
+        setTableData(datosTransformados); // Actualizar el estado con los datos transformados
+      } catch (error) {
+        console.error("Error al obtener los datos de CPC:", error);
+      }
+    };
+
+    obtenerDatosCPC();
+  }, []);
+
+  // Función para formatear fechas (debes implementarla)
+  const formatDate = (dateString) => {
+    // Implementa la lógica para formatear la fecha
+    return dateString; // Cambia esto según tu formato deseado
+  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -120,6 +124,9 @@ const TablaCompleta = () => {
   return (
     <div style={{ padding: "20px" }}>
       <Paper sx={{ padding: 2, borderRadius: 2 }}>
+        {/* Título "Lista de Números Existentes" */}
+        <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Numeros Creados</h1>
+
         {/* Tabla */}
         <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
           <Table>
@@ -154,7 +161,7 @@ const TablaCompleta = () => {
                 {/* Cliente con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    Cliente
+                    Cliente 
                     <IconButton
                       size="small"
                       onClick={(e) => handleFilterClick(e, "cliente")}
@@ -167,7 +174,7 @@ const TablaCompleta = () => {
                 {/* Fecha de Inicio con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    Fecha de Inicio
+                    Fecha de Inicio 
                     <IconButton
                       size="small"
                       onClick={(e) => handleFilterClick(e, "fechaInicio")}
@@ -193,7 +200,7 @@ const TablaCompleta = () => {
                 {/* Prioridad con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    Prioridad
+                    Prioridad 
                     <IconButton
                       size="small"
                       onClick={(e) => handleFilterClick(e, "prioridad")}

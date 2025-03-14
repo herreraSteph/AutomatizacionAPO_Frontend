@@ -231,13 +231,13 @@ const CrearNumero = () => {
             }}
           >
             <MenuItem value="alta" sx={{ color: "red", fontWeight: "normal" }}>
-              Alta
+              Alta 
             </MenuItem>
             <MenuItem value="media" sx={{ color: "#FFA500", fontWeight: "normal" }}>
-              Media
+              Media 
             </MenuItem>
             <MenuItem value="baja" sx={{ color: "green", fontWeight: "normal" }}>
-              Baja
+              Baja 
             </MenuItem>
           </TextField>
         </Grid>
@@ -250,7 +250,7 @@ const CrearNumero = () => {
       </Grid>
       <Dialog open={dialogOpen} onClose={handleCloseDialog}>
         <DialogTitle>Éxito</DialogTitle>
-        <DialogContent>El número se ha creado con éxito.</DialogContent>
+        <DialogContent>El Número se ha Creado con Exito</DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="primary">Aceptar</Button>
         </DialogActions>

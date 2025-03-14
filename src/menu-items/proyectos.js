@@ -1,17 +1,21 @@
-
-import  AddIcon  from '@mui/icons-material/Add';
+import AddIcon from '@mui/icons-material/Add';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PlagiarismIcon from '@mui/icons-material/Plagiarism';
 import GradingIcon from '@mui/icons-material/Grading';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload';
+import AddchartIcon from '@mui/icons-material/Addchart';
+import SaveAltIcon from '@mui/icons-material/SaveAlt'; // Corregido aquí
+
 const icons = {
   AddIcon,
   AccessTimeIcon,
   PlagiarismIcon,
   GradingIcon,
   AssessmentIcon,
-  DriveFolderUploadIcon
+  DriveFolderUploadIcon,
+  AddchartIcon,
+  SaveAltIcon // Ahora está correctamente importado
 };
 
 const proyectos = {
@@ -29,15 +33,20 @@ const proyectos = {
     },
     {
       id: 'TablaCompleta',
-      title: 'CPC',
+      title: 'Numeros Creados',
       type: 'item',
       url: '/proyectos/TablaCompleta',
-      icon: icons.AssessmentIcon,
+      icon: icons.AddchartIcon,
       breadcrumbs: false
     },
-   
-   
- 
+    {
+      id: 'DescargaCPC',
+      title: 'DescargaCPC',
+      type: 'item',
+      url: '/proyectos/DescargaCPC',
+      icon: icons.SaveAltIcon, // Ahora funciona correctamente
+      breadcrumbs: false
+    }
   ]
 };
 

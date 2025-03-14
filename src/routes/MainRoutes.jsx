@@ -12,22 +12,17 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
 const UtilsColor = Loadable(lazy(() => import('views/utilities/Color')));
 const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
-// const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
-// const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
 const CrearNumero = Loadable(lazy(() => import('views/Proyectos/CrearNumero')));
 const Cronograma = Loadable(lazy(() => import('views/Proyectos/Cronograma')));
-// sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const DescripcionMaterial = Loadable(lazy(() => import('views/Proyectos/DescripcionMaterial')));
-
 const ManoObra = Loadable(lazy(() => import('views/Proyectos/AsignacionManoObra')));
 const MaterialesGantt = Loadable(lazy(() => import('views/Proyectos/MaterialesGantt')));
 import RedirectComponent from "./RedirectComponent";
 const CPC = Loadable(lazy(() => import('views/Proyectos/CPC')));
 const TablaCompleta = Loadable(lazy(() => import('views/Proyectos/TablaCompleta')));
 const PreciosUnitarios = Loadable(lazy(() => import('views/Proyectos/PreciosUnitarios')));
-
-
+const DescargaCPC = Loadable(lazy(() => import('views/Proyectos/DescargaCPC')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -75,7 +70,6 @@ const MainRoutes = {
         }
       ]
     },
-   
     {
       path: 'sample-page',
       element: <SamplePage />
@@ -93,27 +87,31 @@ const MainRoutes = {
         },
         {
           path: 'DescripcionMaterial',
-          element : <DescripcionMaterial />
+          element: <DescripcionMaterial />
         },
         {
           path: 'AsignacionManoObra',
-          element : <ManoObra />
+          element: <ManoObra />
         },
         {
           path: 'Equipo',
-          element : <MaterialesGantt />
+          element: <MaterialesGantt />
         },
         {
           path: 'CPC',
-          element : <CPC />
+          element: <CPC />
         },
         {
           path: 'TablaCompleta',
-          element : < TablaCompleta/>
+          element: <TablaCompleta />
         },
         {
           path: 'PreciosUnitarios',
-          element : <PreciosUnitarios/>
+          element: <PreciosUnitarios />
+        },
+        {
+          path: 'DescargaCPC',
+          element: <DescargaCPC />
         },
       ]
     }

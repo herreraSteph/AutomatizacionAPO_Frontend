@@ -6,7 +6,7 @@ const API_URL = 'https://automatizacionapo-backend.onrender.com/api/Construccion
 
 // Variable global para almacenar el idProyecto
 let idProyecto;
-
+let idusuario;
 // Función para obtener el idProyecto del localStorage
 const obtenerIdProyecto = () => {
   const message = localStorage.getItem('idProyecto');
@@ -16,6 +16,15 @@ const obtenerIdProyecto = () => {
     throw new Error('No se encontró el idProyecto en el localStorage');
   }
 };
+const Obtenermessage=() => { 
+const message = localStorage.getItem('message');
+if(message){
+  idusuario = message;
+    }else{
+       throw new Error('No se encontró el idProyecto en el localStorage');
+    }
+};
+
 
 // Método POST para agregar actividades
 export const agregarActividades = async (actividades) => {
@@ -154,3 +163,24 @@ export const obtenerEmpleados = async (tipoEmpleado) => {
     throw error;
   }
 }
+
+ export const  ObtenerCPC = async (Check) => {
+  try{
+    Obtenermessage();
+    const requestBody = {
+      id_usuario: idusuario,
+      proyectoCheck: Check
+    };
+    const response = await axios.post(`${API_URL}/ObtenerCPC`, requestBody,{
+    headers:{
+      'Content-Type': 'application/json',
+    },
+  });
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener CPC:', error);
+    throw error;
+  }
+}
+ 
+

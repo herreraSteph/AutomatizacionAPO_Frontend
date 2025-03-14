@@ -223,7 +223,7 @@ const CPC = () => {
           <Grid item xs={12} display="flex" justifyContent="flex-end">
             <FormControl>
               <Typography variant="subtitle1" sx={{ textAlign: "center", mb: 1 }}>
-                Detalles de Diseño y materiales en Anexo
+                Detalles de Diseño y Materiales en Anexo  
               </Typography>
               <ToggleButtonGroup
                 value={selected}
