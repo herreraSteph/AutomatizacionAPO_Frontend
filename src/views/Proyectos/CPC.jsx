@@ -13,6 +13,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Button,
+  Alert, // Importar Alert
+  AlertTitle, // Importar AlertTitle
 } from "@mui/material";
 import {
   Engineering,
@@ -43,11 +45,26 @@ const CPC = () => {
   const [seguridadSeleccionada, setSeguridadSeleccionada] = useState("");
   const [tipoAcabado, setTipoAcabado] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [errors, setErrors] = useState({}); // Estado para manejar errores
+  const [errors, setErrors] = useState({});
+  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
 
   const navigate = useNavigate();
   const location = useLocation();
   const { id, nombreActividad } = location.state || {};
+
+  // Verificar la conexión a Internet
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   const handleSelection = (event, newSelection) => {
     setSelected(newSelection);
@@ -107,12 +124,12 @@ const CPC = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Retorna true si no hay errores
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = () => {
     if (!validateForm()) {
-      return; // Detener la ejecución si hay errores
+      return;
     }
 
     const requestBody = {
@@ -126,7 +143,7 @@ const CPC = () => {
       condicionSeguridad: seguridadSeleccionada,
       disenios: selected,
     };
-    
+
     fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/CrearProyecto", {
       method: "POST",
       headers: {
@@ -149,6 +166,14 @@ const CPC = () => {
 
   return (
     <Box sx={{ p: 2 }}>
+      {/* Alerta de conexión a Internet */}
+      {!isOnline && (
+        <Alert severity="warning" sx={{ marginBottom: 2 }}>
+          <AlertTitle>Advertencia</AlertTitle>
+          Parece que no estás conectado a Internet.
+        </Alert>
+      )}
+
       <MainCard title="Creación de CPC" sx={{ textAlign: "center" }}>
         <Grid container spacing={2} alignItems="center">
           {/* Select para Nom. Act.O pry */}
