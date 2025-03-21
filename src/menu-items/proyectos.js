@@ -20,7 +20,7 @@ const icons = {
 
 const proyectos = {
   id: 'proyectos',
-  title: 'Proyectos',
+  title: 'Construcción',
   type: 'group',
   children: [
     {

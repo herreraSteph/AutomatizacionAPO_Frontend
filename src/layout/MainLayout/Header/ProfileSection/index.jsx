@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
-import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -23,6 +22,7 @@ import Popper from '@mui/material/Popper';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
+import ExitToAppRoundedIcon from '@mui/icons-material/ExitToAppRounded'; // Nuevo ícono
 
 // third-party
 import PerfectScrollbar from 'react-perfect-scrollbar';
@@ -31,10 +31,9 @@ import PerfectScrollbar from 'react-perfect-scrollbar';
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 import UpgradePlanCard from './UpgradePlanCard';
-import User1 from 'assets/images/users/user-round.svg';
 
 // assets
-import { IconLogout, IconSearch, IconSettings, IconUser } from '@tabler/icons-react';
+import { IconSettings } from '@tabler/icons-react'; // Solo necesitamos IconSettings
 
 // ==============================|| PROFILE MENU ||============================== //
 
@@ -90,12 +89,16 @@ const ProfileSection = () => {
     <>
       <Chip
         sx={{
-          height: '48px',
+          height: '45px',
+          width: '45px', // Asegurar que el Chip sea un círculo perfecto
+          display: 'flex',
           alignItems: 'center',
-          borderRadius: '27px',
+          justifyContent: 'center', // Centrar el contenido horizontal y verticalmente
+          borderRadius: '50%', // Hacer que el Chip sea completamente redondo
           transition: 'all .2s ease-in-out',
           borderColor: theme.palette.primary.light,
           backgroundColor: theme.palette.primary.light,
+          padding: 0, // Eliminar el padding interno
           '&[aria-controls="menu-list-grow"], &:hover': {
             borderColor: theme.palette.primary.main,
             background: `${theme.palette.primary.main}!important`,
@@ -104,85 +107,34 @@ const ProfileSection = () => {
               stroke: theme.palette.primary.light
             }
           },
-          '& .MuiChip-label': {
-            lineHeight: 0
+          '& .MuiChip-icon': {
+            margin: 0, // Eliminar el margen del ícono
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }
         }}
         icon={
-          <Avatar
-            src={User1}
-            sx={{
-              ...theme.typography.mediumAvatar,
-              margin: '8px 0 8px 8px !important',
-              cursor: 'pointer'
+          <ExitToAppRoundedIcon
+            style={{
+              cursor: 'pointer',
+              fontSize: '24px', // Ajustar el tamaño del ícono
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transform: 'translate(11px, -2px)', // Mover 2px a la derecha y 2px hacia arriba
             }}
-            ref={anchorRef}
-            aria-controls={open ? 'menu-list-grow' : undefined}
-            aria-haspopup="true"
-            color="inherit"
+            onClick={handleLogout}
           />
         }
-        label={<IconSettings stroke={1.5} size="1.5rem" color={theme.palette.primary.main} />}
+        label={null} // No necesitamos un label adicional
         variant="outlined"
         ref={anchorRef}
         aria-controls={open ? 'menu-list-grow' : undefined}
         aria-haspopup="true"
-        onClick={handleToggle}
+        onClick={handleLogout} // Ejecutar handleLogout al hacer clic en el Chip
         color="primary"
       />
-      <Popper
-        placement="bottom-end"
-        open={open}
-        anchorEl={anchorRef.current}
-        role={undefined}
-        transition
-        disablePortal
-        popperOptions={{
-          modifiers: [
-            {
-              name: 'offset',
-              options: {
-                offset: [0, 14]
-              }
-            }
-          ]
-        }}
-      >
-        {({ TransitionProps }) => (
-          <Transitions in={open} {...TransitionProps}>
-            <Paper>
-              <ClickAwayListener onClickAway={handleClose}>
-                <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
-                  <Box sx={{ p: 2, pb: 0 }}>
-                    <Stack>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Typography variant="h4">Area Construccion</Typography>
-                        <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
-                        </Typography>
-                      </Stack>
-                      <Typography variant="subtitle2"></Typography>
-                    </Stack>
-                    <Divider />
-                  </Box>
-                  <PerfectScrollbar>
-                    <Box sx={{ p: 2, pt: 0 }}>
-                      <UpgradePlanCard />
-                      <List>
-                        <ListItemButton selected={selectedIndex === 4} onClick={handleLogout}>
-                          <ListItemIcon>
-                            <IconLogout stroke={1.5} size="1.3rem" />
-                          </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Salir </Typography>} />
-                        </ListItemButton>
-                      </List>
-                    </Box>
-                  </PerfectScrollbar>
-                </MainCard>
-              </ClickAwayListener>
-            </Paper>
-          </Transitions>
-        )}
-      </Popper>
     </>
   );
 };

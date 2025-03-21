@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
 // material-ui
 import Divider from '@mui/material/Divider';
@@ -6,15 +7,20 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import TextField from '@mui/material/TextField';  // Importación agregada
-import Button from '@mui/material/Button';  // Importación agregada
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import MenuItem from '@mui/material/MenuItem';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 import Logo from '../../../assets/images/Registro/Logo.jpeg';
 
 // project imports
 import AuthWrapper1 from '../AuthWrapper1';
 import AuthCardWrapper from '../AuthCardWrapper';
 import AuthFooter from 'ui-component/cards/AuthFooter';
-import { useState } from 'react';
 
 // ===============================|| AUTH3 - REGISTER ||=============================== //
 
@@ -26,11 +32,23 @@ const Register = () => {
     nombre: '',
     apellido: '',
     correo: '',
-    contraseña: ''
+    contraseña: '',
+    roles: 0  // Este campo almacenará 1 (Construcción) o 2 (Precios Unitarios)
   });
 
+  const [openModal, setOpenModal] = useState(false); // Controla si el modal está abierto
+  const [modalMessage, setModalMessage] = useState(''); // Almacena el mensaje del modal
+  const [modalSeverity, setModalSeverity] = useState('success'); // Controla el tipo de modal (éxito o error)
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // Si el campo es "rol", convertimos el valor a número
+    const updatedValue = name === 'roles' ? (value === 'Construcción' ? 1 : 2) : value;
+    setFormData({ ...formData, [name]: updatedValue });
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false); // Cierra el modal
   };
 
   const handleSubmit = async (e) => {
@@ -43,21 +61,32 @@ const Register = () => {
         body: JSON.stringify(formData)
       });
 
+      // Verificar si la respuesta no es exitosa
       if (!response.ok) {
-        throw new Error('Error al registrar usuario');
+        // Si la respuesta no es exitosa, obtener el mensaje de error del servidor
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Error al registrar usuario');
       }
 
+      // Si la respuesta es exitosa, obtener los datos
       const data = await response.json();
-      console.log('Registro exitoso:', data);
 
-      // Mostrar alerta de éxito
-      alert('¡Registro exitoso!');
+      // Verificar si la respuesta tiene un campo "tipoError"
+      if (data.tipoError !== undefined && data.tipoError !== 0) {
+        // Si tipoError es diferente de 0, lanzar un error con el mensaje del servidor
+        throw new Error(data.mensaje || 'Error al registrar usuario');
+      }
 
-      // Aquí podrías redirigir al usuario o realizar alguna otra acción
+      // Si todo está bien, mostrar modal de éxito
+      setModalMessage("¡Registro exitoso!");
+      setModalSeverity("success");
+      setOpenModal(true);
     } catch (error) {
-      console.error(error.message);
-      // Mostrar alerta en caso de error
-      alert('Error al registrar usuario');
+      console.error(error.message); // Registrar el error en la consola para depuración
+      // Mostrar modal en caso de error
+      setModalMessage("Ocurrió un error. Inténtalo de nuevo más tarde");
+      setModalSeverity("error");
+      setOpenModal(true);
     }
   };
 
@@ -93,6 +122,20 @@ const Register = () => {
                         <TextField label="Apellido" name="apellido" value={formData.apellido} onChange={handleChange} fullWidth />
                         <TextField label="Correo" name="correo" type="email" value={formData.correo} onChange={handleChange} fullWidth />
                         <TextField label="Contraseña" name="contraseña" type="password" value={formData.contraseña} onChange={handleChange} fullWidth />
+                        
+                        {/* Campo para seleccionar el rol */}
+                        <TextField
+                          select
+                          label="Rol"
+                          name="roles"
+                          value={formData.roles === 1 ? 'Construcción' : formData.roles === 2 ? 'Precios Unitarios' : ''}
+                          onChange={handleChange}
+                          fullWidth
+                        >
+                          <MenuItem value="Construcción">Construcción</MenuItem>
+                          <MenuItem value="Precios Unitarios">Precios Unitarios</MenuItem>
+                        </TextField>
+
                         <Button type="submit" variant="contained" color="primary">Registrarse</Button>
                       </Stack>
                     </form>
@@ -116,6 +159,23 @@ const Register = () => {
           <AuthFooter />
         </Grid>
       </Grid>
+
+      {/* Modal */}
+      <Dialog open={openModal} onClose={handleCloseModal}>
+        <DialogTitle>
+          {modalSeverity === "success" ? "Éxito" : "Error"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {modalMessage}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseModal} color="primary">
+            Cerrar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </AuthWrapper1>
   );
 };

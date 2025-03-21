@@ -14,7 +14,7 @@ const other = {
    
     {
       id: 'documentation',
-      title: 'dgfjfgjfhjf',
+      title: 'documentacion',
       type: 'item',
       url: '/dashboard/default',
     
