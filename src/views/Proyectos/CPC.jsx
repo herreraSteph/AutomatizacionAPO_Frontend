@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import GradingIcon from '@mui/icons-material/Grading';
+import { useLocation } from "react-router-dom";
 import {
   Typography,
   TextField,
@@ -41,35 +41,13 @@ const CPC = () => {
   const [equipoReferencia, setEquipoReferencia] = useState("");
   const [ubicacion, setUbicacion] = useState("");
   const [seguridadSeleccionada, setSeguridadSeleccionada] = useState("");
-  const [numeros, setNumeros] = useState([]);
-  const [selectedNumero, setSelectedNumero] = useState("");
   const [tipoAcabado, setTipoAcabado] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [errors, setErrors] = useState({}); // Estado para manejar errores
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const message = localStorage.getItem("message");
-    fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/Consultar", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: message }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const formattedData = data.map((item) => ({
-          id_numero: item.id_numero,
-          nombre: item.nombre,
-        }));
-        setNumeros(formattedData);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
+  const location = useLocation();
+  const { id, nombreActividad } = location.state || {};
 
   const handleSelection = (event, newSelection) => {
     setSelected(newSelection);
@@ -106,9 +84,6 @@ const CPC = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!selectedNumero) {
-      newErrors.selectedNumero = "El número de proyecto es requerido.";
-    }
     if (!tipoAcabado) {
       newErrors.tipoAcabado = "El tipo de acabado es requerido.";
     }
@@ -141,7 +116,7 @@ const CPC = () => {
     }
 
     const requestBody = {
-      idNumero: selectedNumero,
+      idNumero: id,
       tipoAcabados: tipoAcabado,
       descripcion: descripcion,
       area: placement,
@@ -179,21 +154,12 @@ const CPC = () => {
           {/* Select para Nom. Act.O pry */}
           <Grid item xs={6}>
             <FormControl fullWidth variant="outlined">
-              <InputLabel>Nom. Act.O pry</InputLabel>
-              <Select
-                value={selectedNumero}
-                onChange={(event) => setSelectedNumero(event.target.value)}
-                label="Nom. Act.O pry"
-                sx={{ backgroundColor: "#fffff" }}
-                error={!!errors.selectedNumero}
-              >
-                {numeros.map((num, index) => (
-                  <MenuItem key={index} value={num.id_numero}>
-                    {num.nombre}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.selectedNumero && <Typography color="error">{errors.selectedNumero}</Typography>}
+              <TextField
+                value={nombreActividad}
+                label="Nom proyecto"
+                variant="outlined"
+                sx={{ backgroundColor: "#FFFFF" }}
+              />
             </FormControl>
           </Grid>
 

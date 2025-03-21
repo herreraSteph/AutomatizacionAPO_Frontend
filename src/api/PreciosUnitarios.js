@@ -41,3 +41,24 @@ export const ObtenerNumeros = async () => {
     throw error;
   }
 }
+
+export const DescargarCOTZ = async (id_proyecto) => {
+  try {
+    const requestBody = {
+      id: id_proyecto,
+    };
+    const response = await axios.post(`${API_URL}/GenerarMatrizCotizacion`, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      responseType: 'blob', // Para manejar datos binarios como archivos
+      headers: {
+        Accept: 'application/zip',
+      }
+    });
+    return response;
+  } catch (error) {
+    console.error("Error al obtener CPC:", error);
+    throw error;
+  }
+};

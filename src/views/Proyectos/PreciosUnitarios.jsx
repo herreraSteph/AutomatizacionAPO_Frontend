@@ -12,10 +12,12 @@ import {
   IconButton,
   Popover,
   Typography,
+  CircularProgress
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import { ObtenerNumeros } from "../../api/PreciosUnitarios";
+import { DescargarCOTZ } from "../../api/PreciosUnitarios";
 
 const PreciosUnitarios = () => {
   // Estado inicial de los datos de la tabla (vacío)
@@ -33,6 +35,7 @@ const PreciosUnitarios = () => {
   });
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Función para formatear fechas en formato día/mes/año
   const formatDate = (dateString) => {
@@ -51,7 +54,7 @@ const PreciosUnitarios = () => {
         const response = await ObtenerNumeros();
         // Mapear los datos de la API al formato que espera la tabla
         const mappedData = response.map((item) => ({
-          id: item.id_numero,
+          id: item.id,
           nombreActividad: item.nombre,
           fechaCreacion: formatDate(item.fecha_creacion), // Formatear fecha
           cliente: item.cliente,
@@ -77,14 +80,44 @@ const PreciosUnitarios = () => {
     setPage(0);
   };
 
-  const handleDescargar = () => {
+  const handleDescargar = async (id) => {
     // Simulación de descarga
-    const link = document.createElement("a");
-    link.href = "https://example.com/file.pdf"; // URL del archivo a descargar
-    link.download = "archivo.pdf"; // Nombre del archivo
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    setLoading(true);
+    try{
+    const response = await DescargarCOTZ(id);
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+  
+      // Extraer el nombre del archivo de los encabezados
+      const contentDisposition = response.headers["content-disposition"] || response.headers["Content-Disposition"];
+
+      let fileName = ``; 
+  
+      if (contentDisposition && contentDisposition.includes("filename=")) {
+        // Extraer el nombre del archivo del encabezado content-disposition
+        fileName = contentDisposition
+          .split("filename=")[1] // Obtener la parte después de "filename="
+          .split(";")[0] // Eliminar cualquier parámetro adicional (como "utf-8")
+          .trim() // Eliminar espacios en blanco
+          .replace(/['"]/g, ""); // Eliminar comillas simples o dobles
+      }
+  
+      // Asignar el nombre del archivo al enlace de descarga
+      link.setAttribute("download", fileName);
+  
+      // Simular clic en el enlace para iniciar la descarga
+      document.body.appendChild(link);
+      link.click();
+  
+      // Limpiar y liberar el objeto URL
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al descargar el archivo:", error);
+    } finally {
+      setLoading(false); // Desactivar el spinner
+    }
   };
 
   const handleFilterClick = (event, filterName) => {
@@ -241,10 +274,11 @@ const PreciosUnitarios = () => {
                   </TableCell>
                   <TableCell>
                     <IconButton
-                      onClick={handleDescargar}
+                      onClick={() => handleDescargar(row.id)}
                       sx={{ color: "#060336" }} // Color del ícono
+                      disabled={loading}
                     >
-                      <ArchiveIcon />
+                      {loading ? <CircularProgress size={24} /> : <ArchiveIcon />}
                     </IconButton>
                   </TableCell>
                 </TableRow>
