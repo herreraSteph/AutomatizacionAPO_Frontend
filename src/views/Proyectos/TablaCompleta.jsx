@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -14,12 +15,10 @@ import {
   Popover,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList"; // Ícono de filtro
-import { ObtenerCPC } from "../../api/Construccion";///
+import { ObtenerCPC } from "../../api/Construccion"; ///
 
 const TablaCompleta = () => {
-  // Estado para almacenar los datos de la tabla
-  const [tableData, setTableData] = useState([]); // Inicializa con un array vacío
-
+  const [tableData, setTableData] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filters, setFilters] = useState({
@@ -32,25 +31,24 @@ const TablaCompleta = () => {
   });
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const obtenerDatosCPC = async () => {
       try {
-        const datosCPC = await ObtenerCPC(false); // Obtener datos de la API
-        console.log("Datos obtenidos de ObtenerCPC:", datosCPC);
+        const datosCPC = await ObtenerCPC(false);
+        
 
-        // Transformar y formatear los datos
         const datosTransformados = datosCPC.map((item) => ({
           id: item.id_numero,
           nombreActividad: item.nombre,
-          fechaCreacion: formatDate(item.fecha_creacion), // Formatear fecha_creacion
+          fechaCreacion: formatDate(item.fecha_creacion),
           cliente: item.cliente,
-          fechaInicio: formatDate(item.fecha_inicio), // Formatear fecha_inicio
+          fechaInicio: formatDate(item.fecha_inicio),
           representante: item.representante,
           prioridad: item.prioridad,
         }));
-
-        setTableData(datosTransformados); // Actualizar el estado con los datos transformados
+        setTableData(datosTransformados);
       } catch (error) {
         console.error("Error al obtener los datos de CPC:", error);
       }
@@ -59,10 +57,13 @@ const TablaCompleta = () => {
     obtenerDatosCPC();
   }, []);
 
-  // Función para formatear fechas (debes implementarla)
   const formatDate = (dateString) => {
-    // Implementa la lógica para formatear la fecha
-    return dateString; // Cambia esto según tu formato deseado
+    const date = new Date(dateString);
+    return date.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   const handleChangePage = (event, newPage) => {
@@ -74,9 +75,10 @@ const TablaCompleta = () => {
     setPage(0);
   };
 
-  const handleVisualizar = () => {
-    // Redirigir a la URL especificada
-    window.location.href = "http://localhost:3000/Serman/proyectos/CPC";
+  const handleVisualizar = (id, nombreActividad) => {
+    navigate('/proyectos/CPC', {
+      state: { id, nombreActividad },
+    });
   };
 
   const handleFilterClick = (event, filterName) => {
@@ -107,32 +109,27 @@ const TablaCompleta = () => {
     );
   });
 
-  // Función para obtener el color del texto según la prioridad
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "Alta":
-        return "#ff0000"; // Rojo
+        return "#ff0000";
       case "Media":
-        return "#ff9900"; // Naranja
+        return "#ff9900";
       case "Baja":
-        return "#00cc00"; // Verde
+        return "#00cc00";
       default:
-        return "#000000"; // Negro por defecto
+        return "#000000";
     }
   };
-
+console.log("Datos de la tabla:", filteredData);
   return (
     <div style={{ padding: "20px" }}>
       <Paper sx={{ padding: 2, borderRadius: 2 }}>
-        {/* Título "Lista de Números Existentes" */}
         <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Numeros Creados</h1>
-
-        {/* Tabla */}
         <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
           <Table>
             <TableHead sx={{ backgroundColor: "#060336" }}>
               <TableRow>
-                {/* Nom.Act.O.Pry con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     Nom.Act.O.Pry
@@ -145,7 +142,6 @@ const TablaCompleta = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Fecha de Creación con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     Fecha de Creación
@@ -158,10 +154,9 @@ const TablaCompleta = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Cliente con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    Cliente 
+                    Cliente
                     <IconButton
                       size="small"
                       onClick={(e) => handleFilterClick(e, "cliente")}
@@ -171,10 +166,9 @@ const TablaCompleta = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Fecha de Inicio con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    Fecha de Inicio 
+                    Fecha de Inicio
                     <IconButton
                       size="small"
                       onClick={(e) => handleFilterClick(e, "fechaInicio")}
@@ -184,7 +178,6 @@ const TablaCompleta = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Representante con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     Representante
@@ -197,10 +190,9 @@ const TablaCompleta = () => {
                     </IconButton>
                   </div>
                 </TableCell>
-                {/* Prioridad con ícono de filtro */}
                 <TableCell sx={{ color: "white", fontWeight: "bold" }}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    Prioridad 
+                    Prioridad
                     <IconButton
                       size="small"
                       onClick={(e) => handleFilterClick(e, "prioridad")}
@@ -221,18 +213,13 @@ const TablaCompleta = () => {
                   <TableCell>{row.cliente}</TableCell>
                   <TableCell>{row.fechaInicio}</TableCell>
                   <TableCell>{row.representante}</TableCell>
-                  <TableCell
-                    sx={{
-                      color: getPriorityColor(row.prioridad), // Color del texto
-                      fontWeight: "bold",
-                    }}
-                  >
+                  <TableCell sx={{ color: getPriorityColor(row.prioridad), fontWeight: "bold" }}>
                     {row.prioridad}
                   </TableCell>
                   <TableCell>
                     <Button
                       variant="outlined"
-                      onClick={handleVisualizar}
+                      onClick={() => handleVisualizar(row.id, row.nombreActividad)}
                       sx={{
                         borderColor: "#060336",
                         color: "#060336",
@@ -258,8 +245,6 @@ const TablaCompleta = () => {
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </TableContainer>
-
-        {/* Popover para filtros */}
         <Popover
           open={Boolean(filterAnchorEl)}
           anchorEl={filterAnchorEl}

@@ -96,6 +96,17 @@ const Cronograma = () => {
     gantt.config.step = 1; // Un paso por día
     gantt.config.date_scale = "%d %M"; // Formato de la escala de tiempo
 
+    // Configurar el formato de fecha para que use YYYY-MM-DD HH:mm
+    gantt.config.date_format = "%Y-%m-%d %H:%i";
+
+    // Resaltar los fines de semana
+    gantt.templates.scale_cell_class = function (date) {
+      if (date.getDay() === 0 || date.getDay() === 6) {
+        return "weekend";
+      }
+      return "";
+    };
+
     // Definir el rango de tiempo inicial
     const startDate = new Date(); // Fecha de inicio hoy
     const endDate = new Date(startDate);

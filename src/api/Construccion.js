@@ -182,5 +182,26 @@ export const obtenerEmpleados = async (tipoEmpleado) => {
     throw error;
   }
 }
+
+export const DescargarCPC = async (id_proyecto) => {
+  try {
+    const requestBody = {
+      id: id_proyecto,
+    };
+    const response = await axios.post(`${API_URL}/DescargarCPC`, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      responseType: 'blob', // Para manejar datos binarios como archivos
+      headers: {
+        Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      }
+    });
+    return response;
+  } catch (error) {
+    console.error("Error al obtener CPC:", error);
+    throw error;
+  }
+};
  
 
