@@ -46,9 +46,7 @@ const AuthLogin = ({ ...others }) => {
   };
 
   const handleSubmitForm = async (values, { setSubmitting, setErrors }) => {
-    console.log('Formulario enviado con los siguientes valores:');
-    console.log('Email:', values.email);
-    console.log('Password:', values.password);
+    
 
     try {
       const response = await axios.post('https://automatizacionapo-backend.onrender.com/api/Login/SignIn', {
