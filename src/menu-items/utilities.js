@@ -12,34 +12,19 @@ const icons = {
 // ==============================|| UTILITIES MENU ITEMS ||============================== //
 
 const utilities = {
-  id: 'utilities',
-  title: 'Utilities',
+  id: 'Precios Unitarios',
+  title: 'Precios Unitarios',
   type: 'group',
   children: [
     {
-      id: 'util-typography',
-      title: 'Typography',
+      id: 'Precios Unitarios',
+      title: 'Precios Unitarios',
       type: 'item',
-      url: '/utils/util-typography',
-      icon: icons.IconTypography,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-color',
-      title: 'Color',
-      type: 'item',
-      url: '/utils/util-color',
-      icon: icons.IconPalette,
-      breadcrumbs: false
-    },
-    {
-      id: 'util-shadow',
-      title: 'Shadow',
-      type: 'item',
-      url: '/utils/util-shadow',
-      icon: icons.IconShadow,
+      url: '/utilities/PreciosUnitarios',
+      icon: icons.DriveFolderUploadIcon,
       breadcrumbs: false
     }
+  
   ]
 };
 

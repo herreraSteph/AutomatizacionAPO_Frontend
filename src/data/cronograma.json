@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1740431066113",
+    "start_date": "2025-02-24T00:00:00",
+    "text": "sdfasdf sfd",
+    "duration": 20,
+    "parent": "0",
+    "end_date": "2025-03-16T00:00:00",
+    "cantidad": 3,
+    "unidad": "pzas"
+  },
+  {
+    "id": "1740431066122",
+    "start_date": "2025-02-26T00:00:00",
+    "text": "eafsdfasdfs",
+    "duration": 15,
+    "parent": "1740431066113",
+    "end_date": "2025-03-13T00:00:00",
+    "cantidad": 4,
+    "unidad": "lote"
+  },
+  {
+    "id": "1740431066131",
+    "start_date": "2025-02-28T00:00:00",
+    "text": "Nueva tarea",
+    "duration": 10,
+    "parent": "1740431066122",
+    "end_date": "2025-03-10T00:00:00",
+    "cantidad": 6,
+    "unidad": "act"
+  },
+  {
+    "id": "1740431066140",
+    "start_date": "2025-03-02T00:00:00",
+    "text": "dsa sadfsda fas asf ",
+    "duration": 5,
+    "parent": "1740431066131",
+    "end_date": "2025-03-07T00:00:00",
+    "cantidad": 23,
+    "unidad": "jts"
+  }
+]

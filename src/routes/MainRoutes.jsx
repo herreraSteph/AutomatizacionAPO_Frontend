@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+import { element } from 'prop-types';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
@@ -11,11 +12,17 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
 const UtilsColor = Loadable(lazy(() => import('views/utilities/Color')));
 const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
-// const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
-// const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
-
-// sample page routing
+const CrearNumero = Loadable(lazy(() => import('views/Proyectos/CrearNumero')));
+const Cronograma = Loadable(lazy(() => import('views/Proyectos/Cronograma')));
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+const DescripcionMaterial = Loadable(lazy(() => import('views/Proyectos/DescripcionMaterial')));
+const ManoObra = Loadable(lazy(() => import('views/Proyectos/AsignacionManoObra')));
+const MaterialesGantt = Loadable(lazy(() => import('views/Proyectos/MaterialesGantt')));
+import RedirectComponent from "./RedirectComponent";
+const CPC = Loadable(lazy(() => import('views/Proyectos/CPC')));
+const TablaCompleta = Loadable(lazy(() => import('views/Proyectos/TablaCompleta')));
+const PreciosUnitarios = Loadable(lazy(() => import('views/Proyectos/PreciosUnitarios')));
+const DescargaCPC = Loadable(lazy(() => import('views/Proyectos/DescargaCPC')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -25,7 +32,7 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <DashboardDefault />
+      element: <RedirectComponent />
     },
     {
       path: 'dashboard',
@@ -63,27 +70,50 @@ const MainRoutes = {
         }
       ]
     },
-    // {
-    //   path: 'icons',
-    //   children: [
-    //     {
-    //       path: 'tabler-icons',
-    //       element: <UtilsTablerIcons />
-    //     }
-    //   ]
-    // },
-    // {
-    //   path: 'icons',
-    //   children: [
-    //     {
-    //       path: 'material-icons',
-    //       element: <UtilsMaterialIcons />
-    //     }
-    //   ]
-    // },
     {
       path: 'sample-page',
       element: <SamplePage />
+    },
+    {
+      path: 'proyectos',
+      children: [
+        {
+          path: 'crear-numero',
+          element: <CrearNumero />
+        },
+        {
+          path: 'cronograma',
+          element: <Cronograma />
+        },
+        {
+          path: 'DescripcionMaterial',
+          element: <DescripcionMaterial />
+        },
+        {
+          path: 'AsignacionManoObra',
+          element: <ManoObra />
+        },
+        {
+          path: 'Equipo',
+          element: <MaterialesGantt />
+        },
+        {
+          path: 'CPC',
+          element: <CPC />
+        },
+        {
+          path: 'TablaCompleta',
+          element: <TablaCompleta />
+        },
+        {
+          path: 'PreciosUnitarios',
+          element: <PreciosUnitarios />
+        },
+        {
+          path: 'DescargaCPC',
+          element: <DescargaCPC />
+        },
+      ]
     }
   ]
 };

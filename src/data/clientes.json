@@ -1,0 +1,64 @@
+{
+    "clientes": [
+      {
+        "nombre": "CARGILL ATITALAQUIA",
+        "representantes": [
+          "ING. JAVIER CRUZ",
+          "ING. CARLOS ORTEGA",
+          "ING. ABELARDO DE JESUS",
+          "ING. ABIGAIL RAMIREZ",
+          "ING. AISLY CRUZ",
+          "ING. ALEJANDRO HERNANDEZ",
+          "ING. ALFREDO TOVAR",
+          "ING. ANDRES RAMIREZ",
+          "ING. ASLY CRUZ",
+          "ING. AXEL FERNANDEZ",
+          "ING. CARLOS GARCIA",
+          "ING. CAROLINA LOPEZ",
+          "ING. CESAR GALINDO",
+          "ING. DAYANA ZERMEÑO",
+          "ING. DIEGO DIAZ",
+          "ING. DIEGO HERNANDEZ",
+          "ING. EDUARDO JARILLO",
+          "ING. FELIPE NIÑO",
+          "ING. GONZALO CRUZ",
+          "ING. GUILLERMO HERNANDEZ",
+          "ING. IVAN GACHUZ",
+          "ING. JESUS GARCÍA",
+          "ING. JESUS OLMOS",
+          "ING. JORGE PEREZ",
+          "ING. JOSE LUIS GOMEZ",
+          "ING. JOSE LUIS OLGUIN",
+          "ING. LIZETH QUIROZ",
+          "ING. MARIO ARANDA",
+          "ING. OCTAVIO GARCIA",
+          "ING. SACNITE GARCIA",
+          "ING. SELENE MENDOZA",
+          "ING. SOFIA GONZALEZ",
+          "ING. TANIA SANTANA",
+          "ING. TATIANA BUSTAMANTE",
+          "ING. URIEL LOZANO",
+          "ING. VICTOR MONTIEL",
+          "ING. VICTOR MORALES",
+          "ING. YADIRA SANCHEZ",
+          "ING. PEDRO TREJO",
+          "ING. SELENE ELIZONDO",
+          "ING. JESUS GARCIA"
+        ]
+      },
+      {
+        "nombre": "BERSOM",
+        "representantes": [
+          "ING. ALEJANDRA SANCHEZ",
+          "ING. JORGE BERNAL",
+          "LIC. YESICA SANCHEZ"
+        ]
+      },
+      {
+        "nombre": "MEXFER",
+        "representantes": [
+          "LIC. KAREN FLOR LOPEZ"
+        ]
+      }
+    ]
+  }

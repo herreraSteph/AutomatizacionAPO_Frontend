@@ -1,0 +1,15 @@
+  [
+    { "key": "SUPERVISOR_DE_OBRA_MECANICA", "label": "SUPERVISOR DE OBRA MECÁNICA", "hrs_x_jor": 4 },
+    { "key": "SUPERVISOR_DE_OBRA_CIVIL", "label": "SUPERVISOR DE OBRA CIVIL", "hrs_x_jor": 4 },
+    { "key": "SUPERVISOR_DE_SEGURIDAD", "label": "SUPERVISOR DE SEGURIDAD", "hrs_x_jor": 4 },
+    { "key": "ING_EN_LEVANTAMIENTOS", "label": "ING. EN LEVANTAMIENTOS", "hrs_x_jor": 4 },
+    { "key": "CADISTA", "label": "CADISTA", "hrs_x_jor": 4 },
+    { "key": "INSPECTOR_DE_CALIDAD", "label": "INSPECTOR DE CALIDAD", "hrs_x_jor": 4 },
+    { "key": "SOBRESTANTE_DE_OBRA_CIVIL", "label": "SOBRESTANTE DE OBRA CIVIL", "hrs_x_jor": 4 },
+    { "key": "SOBRESTANTE_DE_MANIOBRA", "label": "SOBRESTANTE DE MANIOBRA", "hrs_x_jor": 4 },
+    { "key": "SOBRESTANTE_GENERAL", "label": "SOBRESTANTE GENERAL", "hrs_x_jor": 4 },
+    { "key": "CONTROL_DE_OBRA", "label": "CONTROL DE OBRA", "hrs_x_jor": 4 },
+    { "key": "ALMACENISTA", "label": "ALMACENISTA", "hrs_x_jor": 4 }
+  ]
+
+  

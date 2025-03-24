@@ -8,25 +8,19 @@ const icons = { IconBrandChrome, IconHelp };
 
 const other = {
   id: 'sample-docs-roadmap',
+  title: 'Documentación',
   type: 'group',
   children: [
-    {
-      id: 'sample-page',
-      title: 'Sample Page',
-      type: 'item',
-      url: '/sample-page',
-      icon: icons.IconBrandChrome,
-      breadcrumbs: false
-    },
+   
     {
       id: 'documentation',
-      title: 'Documentation',
+      title: 'documentacion',
       type: 'item',
-      url: 'https://codedthemes.gitbook.io/berry/',
-      icon: icons.IconHelp,
+      url: '/dashboard/default',
+    
       external: true,
       target: true
-    }
+    },
   ]
 };
 

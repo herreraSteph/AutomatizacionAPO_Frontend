@@ -1,0 +1,18 @@
+[
+    { "key": "PAILERO", "label": "PAILERO-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "ALBAÑIL", "label": "ALBAÑIL-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "ARGONERO", "label": "ARGONERO-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "MICRO_ALAMBRERO", "label": "MICRO ALAMBRERO-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "PINTOR", "label": "PINTOR-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "MANIOBRISTA", "label": "MANIOBRISTA-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "ANDAMIERO", "label": "ANDAMIERO-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "MEDIO_OFICIAL", "label": "MEDIO OFICIAL-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "AYUDANTES", "label": "AYUDANTES-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "FIERRO", "label": "FIERRO-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "LAMINERO", "label": "LAMINERO-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "ELECTRICISTA_CALIFICADO", "label": "ELECTRICISTA CALIFICADO-TAL", "hrs_x_jor": 10.5, "tipo": "Taller" },
+    { "key": "CHOFER", "label": "CHOFER-TAL", "hrs_x_jor": 6, "tipo": "Taller" }
+]
+
+
+  
