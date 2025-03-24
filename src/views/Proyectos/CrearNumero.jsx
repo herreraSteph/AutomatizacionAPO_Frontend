@@ -9,6 +9,8 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import Alert from "@mui/material/Alert"; // Importar Alert
+import AlertTitle from "@mui/material/AlertTitle"; // Importar AlertTitle
 import MainCard from "ui-component/cards/MainCard";
 import data from "../../data/clientes";
 import { obtenerUltimoNumero } from "../../api/Construccion";
@@ -27,6 +29,20 @@ const CrearNumero = () => {
   });
   const [representantes, setRepresentantes] = useState([]);
   const [errors, setErrors] = useState({});
+  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para controlar la conexión a Internet
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchUltimoNumero = async () => {
@@ -154,6 +170,12 @@ const CrearNumero = () => {
 
   return (
     <MainCard title="Solicitud de Número de Proyecto">
+      {!isOnline && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <AlertTitle>Advertencia</AlertTitle>
+          Parece que no estás conectado a Internet. Por favor, verifica tu conexión.
+        </Alert>
+      )}
       <Grid container spacing={4} justifyContent="center" alignItems="center">
         <Grid item xs={12} sm={5}>
           <TextField fullWidth label="Nom.Act.O pry" variant="outlined" InputLabelProps={{ shrink: true }} InputProps={{ readOnly: true }} value={numero} />

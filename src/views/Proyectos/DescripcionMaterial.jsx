@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Añadir useEffect
 import {
   Select,
   MenuItem,
@@ -12,7 +12,8 @@ import {
   Button,
   CircularProgress,
   Snackbar,
-  Alert,
+  Alert, // Importar Alert
+  AlertTitle, // Importar AlertTitle
   TablePagination,
   TextField,
 } from "@mui/material";
@@ -30,7 +31,22 @@ const DescripcionMaterial = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
   const navigate = useNavigate();
+
+  // Verificar la conexión a Internet
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   const options1 = ["Opción 1", "Opción 2"];
   const options2 = {
@@ -134,6 +150,14 @@ const DescripcionMaterial = () => {
 
   return (
     <div style={{ padding: "20px" }}>
+      {/* Alerta de conexión a Internet */}
+      {!isOnline && (
+        <Alert severity="warning" sx={{ marginBottom: 2 }}>
+          <AlertTitle>Advertencia</AlertTitle>
+          Parece que no estás conectado a Internet.
+        </Alert>
+      )}
+
       <Paper sx={{ padding: 2, borderRadius: 2 }}>
         {/* Selectores */}
         <div style={{ display: "flex", justifyContent: "center", gap: "30px", marginBottom: "30px" }}>

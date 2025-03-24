@@ -48,7 +48,7 @@ const Register = () => {
   };
 
   const handleCloseModal = () => {
-    setOpenModal(false); // Cierra el modal
+    setOpenModal(false); // Cierra el modal 
   };
 
   const handleSubmit = async (e) => {

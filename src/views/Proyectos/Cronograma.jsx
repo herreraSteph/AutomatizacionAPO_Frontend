@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"; // Importar useNavigate para la 
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import gantt from "dhtmlx-gantt";
 import MainCard from "ui-component/cards/MainCard";
-import { Button, CircularProgress, Modal, Box, Typography } from "@mui/material"; // Importar componentes de Material-UI
+import { Button, CircularProgress, Modal, Box, Typography, Alert, AlertTitle } from "@mui/material"; // Importar componentes de Material-UI
 import "../../assets/css/cronograma.css"; // Archivo CSS para colores
 import { agregarActividades } from "../../api/Construccion"; // Importar la función de la API
 
@@ -13,6 +13,21 @@ const Cronograma = () => {
   const [loading, setLoading] = useState(false); // Estado para controlar el spinner
   const [modalOpen, setModalOpen] = useState(false); // Estado para controlar el modal
   const [modalMessage, setModalMessage] = useState(""); // Mensaje del modal
+  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
+
+  // Verificar la conexión a Internet
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     // Configurar idioma español
@@ -182,6 +197,14 @@ const Cronograma = () => {
         </div>
       }
     >
+      {/* Alerta de conexión a Internet */}
+      {!isOnline && (
+        <Alert severity="warning" sx={{ marginBottom: 2 }}>
+          <AlertTitle>Advertencia</AlertTitle>
+          Parece que no estás conectado a Internet.
+        </Alert>
+      )}
+
       <div ref={ganttContainer} style={{ width: "100%", height: "400px" }} />
 
       {/* Modal para mostrar mensajes de error */}
