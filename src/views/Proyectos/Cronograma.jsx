@@ -15,6 +15,7 @@ const Cronograma = () => {
   const [modalMessage, setModalMessage] = useState("");
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [modalTitle, setModalTitle] = useState("Error");
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
     // Configuración regional
@@ -46,15 +47,15 @@ const Cronograma = () => {
       }
     };
 
-    // Configuración para el comportamiento padre/hijo
+    // Configuración optimizada para parent-child
     gantt.config.auto_types = true;
     gantt.config.order_branch = true;
     gantt.config.order_branch_free = false;
-    gantt.config.duration_unit = "day";
-    gantt.config.work_time = false;
     gantt.config.drag_move = true;
-    gantt.config.drag_progress = true;
     gantt.config.drag_resize = true;
+    gantt.config.drag_progress = true;
+    gantt.config.preserve_scroll = true;
+    gantt.config.show_links = true;
 
     // Configuración de columnas
     gantt.config.columns = [
@@ -82,89 +83,95 @@ const Cronograma = () => {
       }
     ];
 
-    // Función para aplicar restricciones padre/hijo
-    const applyParentChildConstraints = (task) => {
-      if (task.parent) {
-        const parent = gantt.getTask(task.parent);
-        const parentStart = new Date(parent.start_date);
-        const parentEnd = new Date(parent.start_date);
-        parentEnd.setDate(parentStart.getDate() + parent.duration);
-        
-        const taskStart = new Date(task.start_date);
-        const taskEnd = new Date(task.start_date);
-        taskEnd.setDate(taskStart.getDate() + task.duration);
-        
-        let changed = false;
-        
-        // Restricción de fecha de inicio
-        if (taskStart < parentStart) {
-          task.start_date = new Date(parentStart);
-          changed = true;
-        }
-        
-        // Restricción de fecha final
-        if (taskEnd > parentEnd) {
-          const maxDuration = Math.floor((parentEnd - new Date(task.start_date)) / (1000 * 60 * 60 * 24));
-          task.duration = maxDuration > 0 ? maxDuration : 1;
-          changed = true;
-        }
-        
-        return changed;
+    // Función optimizada para restricciones
+    const applyParentConstraints = (task) => {
+      if (!task.parent) return false;
+      
+      const parent = gantt.getTask(task.parent);
+      if (!parent) return false;
+
+      const parentStart = new Date(parent.start_date);
+      const parentEnd = new Date(parent.start_date);
+      parentEnd.setDate(parentStart.getDate() + parent.duration);
+      
+      const taskStart = new Date(task.start_date);
+      const taskEnd = new Date(taskStart);
+      taskEnd.setDate(taskStart.getDate() + task.duration);
+      
+      let changed = false;
+      
+      // Restricción de fecha inicio
+      if (taskStart < parentStart) {
+        task.start_date = new Date(parentStart);
+        changed = true;
       }
-      return false;
+      
+      // Restricción de fecha fin
+      const maxEnd = new Date(Math.min(taskEnd.getTime(), parentEnd.getTime()));
+      const maxDuration = Math.floor((maxEnd - taskStart) / (1000 * 60 * 60 * 24));
+      
+      if (task.duration !== maxDuration) {
+        task.duration = maxDuration > 0 ? maxDuration : 1;
+        changed = true;
+      }
+      
+      return changed;
     };
 
-    // Evento al arrastrar tareas
-    gantt.attachEvent("onTaskDrag", function(id, mode, task) {
-      if (applyParentChildConstraints(task)) {
+    // Manejo optimizado de eventos de arrastre
+    gantt.attachEvent("onTaskDragStart", () => {
+      setIsDragging(true);
+      return true;
+    });
+
+    gantt.attachEvent("onTaskDragEnd", () => {
+      setIsDragging(false);
+      return true;
+    });
+
+    gantt.attachEvent("onTaskDrag", (id, mode, task) => {
+      if (applyParentConstraints(task)) {
         gantt.updateTask(id);
         return false;
       }
       return true;
     });
 
-    // Evento antes de soltar la tarea
-    gantt.attachEvent("onBeforeTaskDrag", function(id, mode, e) {
+    // Manejo de redimensionamiento
+    gantt.attachEvent("onBeforeTaskChange", (id, mode, task) => {
+      if (mode === "resize" && applyParentConstraints(task)) {
+        return false;
+      }
+      return true;
+    });
+
+    // Actualización optimizada de tareas
+    gantt.attachEvent("onAfterTaskUpdate", (id) => {
+      if (isDragging) return true;
+      
       const task = gantt.getTask(id);
-      if (applyParentChildConstraints(task)) {
-        gantt.updateTask(id);
-      }
-      return true;
-    });
-
-    // Evento al redimensionar tareas
-    gantt.attachEvent("onBeforeTaskChange", function(id, mode, task) {
-      if (mode === "resize") {
-        if (applyParentChildConstraints(task)) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-    // Evento al actualizar tareas
-    gantt.attachEvent("onAfterTaskUpdate", function(id, task) {
-      // Ajustar tareas hijas si es un padre
+      
+      // Actualizar tareas hijas si es padre
       if (gantt.hasChild(id)) {
         const children = gantt.getChildren(id);
         children.forEach(childId => {
           const child = gantt.getTask(childId);
-          if (applyParentChildConstraints(child)) {
+          if (applyParentConstraints(child)) {
             gantt.updateTask(childId);
           }
         });
       }
       
-      // Ajustar la tarea actual si es una hija
-      if (task.parent) {
-        if (applyParentChildConstraints(task)) {
-          gantt.updateTask(id);
-        }
+      // Actualizar tarea actual si es hija
+      if (task.parent && applyParentConstraints(task)) {
+        gantt.updateTask(id);
       }
+      
+      return true;
     });
 
-    // Actualizar fecha final al modificar tarea
-    gantt.attachEvent("onTaskUpdated", function(id, task) {
+    // Actualizar fecha final al modificar
+    gantt.attachEvent("onTaskUpdated", (id, task) => {
       if (task.start_date && task.duration) {
         const startDate = new Date(task.start_date);
         const endDate = new Date(startDate);
@@ -174,8 +181,8 @@ const Cronograma = () => {
       }
     });
 
-    // Estilos para niveles de tareas
-    gantt.templates.task_class = function(start, end, task) {
+    // Estilos para niveles
+    gantt.templates.task_class = (start, end, task) => {
       const level = gantt.getTask(task.id).$level;
       if (level === 0) return "nivel-0";
       if (level === 1) return "nivel-1";
@@ -183,21 +190,21 @@ const Cronograma = () => {
       return "nivel-otros";
     };
 
-    // Configuración de escala de tiempo
+    // Configuración de tiempo
     gantt.config.scale_unit = "day";
     gantt.config.step = 1;
     gantt.config.date_scale = "%d %M";
     gantt.config.date_format = "%Y-%m-%d %H:%i";
 
     // Estilos para fines de semana
-    gantt.templates.scale_cell_class = function(date) {
+    gantt.templates.scale_cell_class = (date) => {
       if (date.getDay() === 0 || date.getDay() === 6) {
         return "weekend";
       }
       return "";
     };
 
-    // Rango inicial del diagrama
+    // Rango inicial
     const startDate = new Date();
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + 100);
@@ -208,7 +215,9 @@ const Cronograma = () => {
     // Inicializar Gantt
     gantt.init(ganttContainer.current);
 
+    // Limpieza
     return () => {
+      gantt.detachAllEvents();
       gantt.clearAll();
     };
   }, []);
@@ -316,7 +325,10 @@ const Cronograma = () => {
                 borderRadius: "5px",
                 padding: "10px 20px",
                 backgroundColor: "#060336",
-                color: "white"
+                color: "white",
+                "&:hover": {
+                  backgroundColor: "#040225"
+                }
               }}
               onClick={exportGanttData}
               disabled={loading}
@@ -334,7 +346,12 @@ const Cronograma = () => {
         </Alert>
       )}
 
-      <div ref={ganttContainer} style={{ width: "100%", height: "400px" }} />
+      <div ref={ganttContainer} style={{ 
+        width: "100%", 
+        height: "400px",
+        minHeight: "400px",
+        overflow: "hidden"
+      }} />
 
       <Modal
         open={modalOpen}
@@ -355,7 +372,7 @@ const Cronograma = () => {
             borderRadius: "8px"
           }}
         >
-          <Typography id="modal-modal-title" variant="h3" component="h2">
+          <Typography id="modal-modal-title" variant="h6" component="h2">
             {modalTitle}
           </Typography>
           <Typography id="modal-modal-description" sx={{ mt: 2 }}>
