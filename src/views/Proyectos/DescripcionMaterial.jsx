@@ -289,18 +289,7 @@ const DescripcionMaterial = () => {
             {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Guardar"}
           </Button>
 
-          <Button
-            variant="outlined"
-            sx={{
-              borderColor: "#060336",
-              color: "#060336",
-              padding: "8px 20px",
-              fontSize: "0.9rem",
-              borderRadius: "20px",
-            }}
-          >
-            Descargar
-          </Button>
+        
         </div>
       </Paper>
 
