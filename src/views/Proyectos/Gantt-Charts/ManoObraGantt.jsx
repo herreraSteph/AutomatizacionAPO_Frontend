@@ -108,7 +108,6 @@ const ManoObraGannt = () => {
     gantt.config.columns = [
       { name: "text", label: "Nom. Act.", width: 125, tree: true },
       { name: "start_date", label: "Inicio", align: "center", width: 100 },
-      { name: "end_date", label: "Término", align: "center", width: 100 },
       { name: "duration", label: "Días", align: "center", width: 50 },
       { name: "cantidad", label: "Cant", align: "center", width: 50 },
       { name: "unidad", label: "Unidad", align: "center", width: 50 },

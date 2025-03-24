@@ -25,6 +25,21 @@ if(message){
     }
 };
 
+export const crearNumero = async (DatosNumero) => {
+  try{
+    Obtenermessage();
+    DatosNumero.id_usuario = idusuario;
+    const response = await axios.post(`${API_URL}/Crear`, DatosNumero, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener actividades:', error);
+    throw error;
+  }
+}
 
 // Método POST para agregar actividades
 export const agregarActividades = async (actividades) => {

@@ -33,17 +33,17 @@ const proyectos = {
     },
     {
       id: 'TablaCompleta',
-      title: 'Numeros Creados',
+      title: 'Proyectos pendientes',
       type: 'item',
-      url: '/proyectos/TablaCompleta',
+      url: '/proyectos/Pendientes',
       icon: icons.AddchartIcon,
       breadcrumbs: false
     },
     {
       id: 'DescargaCPC',
-      title: 'DescargaCPC',
+      title: 'Proyectos Terminados',
       type: 'item',
-      url: '/proyectos/DescargaCPC',
+      url: '/proyectos/Descargar',
       icon: icons.SaveAltIcon, // Ahora funciona correctamente
       breadcrumbs: false
     }
