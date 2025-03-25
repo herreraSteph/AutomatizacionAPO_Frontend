@@ -23,6 +23,8 @@ const CPC = Loadable(lazy(() => import('views/Proyectos/CPC')));
 const TablaCompleta = Loadable(lazy(() => import('views/Proyectos/TablaCompleta')));
 const PreciosUnitarios = Loadable(lazy(() => import('views/Proyectos/PreciosUnitarios')));
 const DescargaCPC = Loadable(lazy(() => import('views/Proyectos/DescargaCPC')));
+const Editar = Loadable(lazy(() => import('views/Proyectos/Editar')));
+
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -113,6 +115,11 @@ const MainRoutes = {
           path: 'Descargar',
           element: <DescargaCPC />
         },
+        {
+          path: 'Editar',
+          element: <Editar />
+        }
+       
       ]
     }
   ]

@@ -5,7 +5,8 @@ import GradingIcon from '@mui/icons-material/Grading';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload';
 import AddchartIcon from '@mui/icons-material/Addchart';
-import SaveAltIcon from '@mui/icons-material/SaveAlt'; // Corregido aquí
+import SaveAltIcon from '@mui/icons-material/SaveAlt'; 
+import EditIcon from '@mui/icons-material/Edit';
 
 const icons = {
   AddIcon,
@@ -15,7 +16,8 @@ const icons = {
   AssessmentIcon,
   DriveFolderUploadIcon,
   AddchartIcon,
-  SaveAltIcon // Ahora está correctamente importado
+  SaveAltIcon,
+  EditIcon
 };
 
 const proyectos = {
@@ -39,6 +41,7 @@ const proyectos = {
       icon: icons.AddchartIcon,
       breadcrumbs: false
     },
+  
     {
       id: 'DescargaCPC',
       title: 'Proyectos Terminados',

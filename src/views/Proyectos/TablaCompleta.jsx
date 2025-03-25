@@ -103,7 +103,7 @@ const TablaCompleta = () => {
 
   // Visualizar detalles
   const handleVisualizar = (id, nombreActividad) => {
-    navigate("/proyectos/CPC", {
+    navigate("/proyectos/Editar", {
       state: { id, nombreActividad },
     });
   };
@@ -235,7 +235,7 @@ const TablaCompleta = () => {
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>Fecha de Inicio</TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>Representante</TableCell>
                   <TableCell sx={{ color: "white", fontWeight: "bold" }}>Prioridad</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Crear CPC</TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Editar </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
