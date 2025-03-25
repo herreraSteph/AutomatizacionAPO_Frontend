@@ -3,7 +3,18 @@ import { useNavigate } from "react-router-dom"; // Importa useNavigate para la n
 import ManoObraGantt from "./Gantt-Charts/ManoObraGantt";
 import MainCard from "ui-component/cards/MainCard";
 import Equipo from "./Gantt-Charts/CronogramaEquipo";
-import { Button, CircularProgress, Alert, AlertTitle } from "@mui/material"; // Importar Alert y AlertTitle
+import { 
+  Button, 
+  CircularProgress, 
+  Alert, 
+  AlertTitle,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Typography
+} from "@mui/material";
 import { agregarEquipo } from "../../api/Construccion";
 
 const MaterialesGantt = () => {
@@ -11,6 +22,8 @@ const MaterialesGantt = () => {
   const [showGantt, setShowGantt] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
+  const [openModal, setOpenModal] = useState(false); // Estado para controlar el modal
+  const [modalMessage, setModalMessage] = useState(""); // Mensaje del modal
   const navigate = useNavigate(); // Obtén la función navigate para la navegación
 
   // Verificar la conexión a Internet
@@ -31,11 +44,22 @@ const MaterialesGantt = () => {
     setShowGantt(!showGantt);
   };
 
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
   const guardarDatos = async () => {
     if (cronogramaRef.current) {
       setIsLoading(true);
       try {
         const datos = cronogramaRef.current.exportData();
+
+        if (!datos || datos.groups.length === 0) {
+          setModalMessage("Por favor complete el cronograma antes de continuar.");
+          setOpenModal(true);
+          setIsLoading(false);
+          return;
+        }
         const response = await agregarEquipo(datos);
         if (response.tipoError === 0) {
           navigate("/proyectos/DescripcionMaterial");
@@ -43,6 +67,8 @@ const MaterialesGantt = () => {
           console.error("Error al enviar los datos:", response.mensaje);
         }
       } catch (error) {
+        setModalMessage("Error al procesar la solicitud. Por favor intente nuevamente.");
+        setOpenModal(true);
         console.error('Error al agregar empleados:', error);
       } finally {
         setIsLoading(false);
@@ -73,6 +99,28 @@ const MaterialesGantt = () => {
               startIcon={isLoading ? <CircularProgress size={20} /> : null}>
         Siguiente
       </Button>
+
+      {/* Modal para mostrar mensajes */}
+            <Dialog
+              open={openModal}
+              onClose={handleCloseModal}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+            >
+               <DialogTitle id="alert-dialog-title">
+                <Typography variant="h3" component="h3">Atención</Typography>
+              </DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  {modalMessage}
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseModal} color="primary" autoFocus>
+                  Aceptar
+                </Button>
+              </DialogActions>
+            </Dialog>
 
       {/* Renderiza ManoObraGantt solo si showGantt es true */}
       {showGantt && <ManoObraGantt />}

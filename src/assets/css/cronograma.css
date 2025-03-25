@@ -1,16 +1,16 @@
 /* Estilos para los niveles de tareas */
 .nivel-0 .gantt_task_content {
-  background-color: #4CAF50 !important; /* Verde */
+  background-color: #002060 !important; /* Verde */
   color: white;
 }
 
 .nivel-1 .gantt_task_content {
-  background-color: #2196F3 !important; /* Azul */
+  background-color: #00B0F0 !important; /* Azul */
   color: white;
 }
 
 .nivel-2 .gantt_task_content {
-  background-color: #FF9800 !important; /* Naranja */
+  background-color: #9BC2E6 !important; /* Naranja */
   color: white;
 }
 

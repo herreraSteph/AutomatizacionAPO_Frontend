@@ -102,7 +102,7 @@ const MainRoutes = {
           element: <CPC />
         },
         {
-          path: 'TablaCompleta',
+          path: 'Pendientes',
           element: <TablaCompleta />
         },
         {
@@ -110,7 +110,7 @@ const MainRoutes = {
           element: <PreciosUnitarios />
         },
         {
-          path: 'DescargaCPC',
+          path: 'Descargar',
           element: <DescargaCPC />
         },
       ]
