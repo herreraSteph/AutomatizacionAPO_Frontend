@@ -12,7 +12,7 @@ import DialogActions from "@mui/material/DialogActions";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import MainCard from "ui-component/cards/MainCard";
-import Skeleton from "@mui/material/Skeleton"; // Importar Skeleton
+import Skeleton from "@mui/material/Skeleton";
 import data from "../../data/clientes";
 import { obtenerUltimoNumero, crearNumero } from "../../api/Construccion";
 
@@ -20,10 +20,11 @@ const CrearNumero = () => {
   const navigate = useNavigate();
   const [numero, setNumero] = useState("");
   const [loading, setLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true); // Nuevo estado para carga inicial
+  const [initialLoading, setInitialLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     numero: "",
+    nombreProyecto: "", // Nuevo campo agregado
     cliente: "",
     fechaInicio: "",
     representante: "",
@@ -54,7 +55,7 @@ const CrearNumero = () => {
       } catch (error) {
         console.error("Error al obtener el último número:", error);
       } finally {
-        setInitialLoading(false); // Finaliza la carga inicial independientemente del resultado
+        setInitialLoading(false);
       }
     };
 
@@ -102,6 +103,9 @@ const CrearNumero = () => {
   const validateForm = () => {
     const newErrors = {};
 
+    if (!formData.nombreProyecto) {
+      newErrors.nombreProyecto = "El nombre del proyecto es requerido";
+    }
     if (!formData.cliente) {
       newErrors.cliente = "El cliente es requerido";
     }
@@ -128,6 +132,7 @@ const CrearNumero = () => {
     setLoading(true);
     const payload = {
       nombre: formData.numero,
+      nombre_proyecto: formData.nombreProyecto, // Incluir el nombre del proyecto
       fecha_creacion: getFechaIsoCdmx(),
       cliente: formData.cliente,
       fecha_inicio: formData.fechaInicio,
@@ -142,8 +147,8 @@ const CrearNumero = () => {
       setLoading(false);
       return;
     }
-      setDialogOpen(true);
-      setLoading(false);
+    setDialogOpen(true);
+    setLoading(false);
   };
 
   const handleCloseDialog = () => {
@@ -159,6 +164,9 @@ const CrearNumero = () => {
             <Skeleton variant="rectangular" width="100%" height={56} />
           </Grid>
           <Grid item xs={12} sm={4}>
+            <Skeleton variant="rectangular" width="100%" height={56} />
+          </Grid>
+          <Grid item xs={12} sm={5}>
             <Skeleton variant="rectangular" width="100%" height={56} />
           </Grid>
           <Grid item xs={12} sm={5}>
@@ -195,6 +203,18 @@ const CrearNumero = () => {
         </Grid>
         <Grid item xs={12} sm={4}>
           <TextField fullWidth label="Fecha de creación" type="date" variant="outlined" InputLabelProps={{ shrink: true }} InputProps={{ readOnly: true }} value={formData.fechaCreacion} />
+        </Grid>
+        <Grid item xs={12} sm={5}>
+          <TextField
+            fullWidth
+            label="Nombre del Proyecto"
+            variant="outlined"
+            name="nombreProyecto"
+            value={formData.nombreProyecto}
+            onChange={handleChange}
+            error={!!errors.nombreProyecto}
+            helperText={errors.nombreProyecto}
+          />
         </Grid>
         <Grid item xs={12} sm={5}>
           <TextField 
