@@ -42,14 +42,12 @@ export const crearNumero = async (DatosNumero) => {
 }
 
 // Método POST para agregar actividades
-export const agregarActividades = async (actividades) => {
+export const agregarActividades = async (actividades, id_proyecto) => {
   try {
-    // Obtener el idProyecto del localStorage
-    obtenerIdProyecto();
     
     // Estructura del cuerpo de la solicitud
     const requestBody = {
-      idProyecto: idProyecto,
+      idProyecto: id_proyecto,
       actividades: actividades,
     };
 
@@ -69,13 +67,10 @@ export const agregarActividades = async (actividades) => {
   }
 };
 
-export const obtenerActividades = async () =>{
+export const obtenerActividades = async (id_proyecto) =>{
   try{
-
-    obtenerIdProyecto();
-
     const requestBody = {
-      id: idProyecto
+      id: id_proyecto
     }
 
     const response = await axios.post(`${API_URL}/ObtenerActividades`, requestBody,{
@@ -90,11 +85,10 @@ export const obtenerActividades = async () =>{
   }
 };
 
-export const agregarEmpleados = async (empleados) => {
+export const agregarEmpleados = async (empleados, id_proyecto) => {
   try{
-    obtenerIdProyecto();
     const requestBody = {
-      idProyecto: idProyecto,
+      idProyecto: id_proyecto,
       groups: empleados.groups,
       items: empleados.items,
     };
@@ -111,11 +105,10 @@ export const agregarEmpleados = async (empleados) => {
   }
 }
 
-export const agregarEquipo = async (equipo) => {
+export const agregarEquipo = async (equipo, id_proyecto) => {
   try{
-    obtenerIdProyecto();
     const requestBody = {
-      idProyecto: idProyecto,
+      idProyecto: id_proyecto,
       groups: equipo.groups,
       items: equipo.items,
     };
@@ -132,11 +125,10 @@ export const agregarEquipo = async (equipo) => {
   }
 }
 
-export const agregarMaterial = async (material) => {
+export const agregarMaterial = async (material, id_proyecto) => {
   try{
-    obtenerIdProyecto();
     const requestBody = {
-      idProyecto: idProyecto,
+      idProyecto: id_proyecto,
       materiales: material,
     };
     const response = await axios.post(`${API_URL}/AgregarMaterial`, requestBody,{
@@ -218,5 +210,57 @@ export const DescargarCPC = async (id_proyecto) => {
     throw error;
   }
 };
+
+
+export const VerificarProyectoExistente = async (id_numero) => {
+  try {
+    const requestBody = {
+      idNumero: id_numero,
+    };
+    const response = await axios.post(`${API_URL}/VerificarProyectoExistente`, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener CPC:", error);
+    throw error;
+  }
+}
+
+export const CheckProjectData = async (id_proyecto) => {
+  try {
+    const requestBody = {
+      id: id_proyecto,
+    };
+    const response = await axios.post(`${API_URL}/CheckProjectData`, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener CPC:", error);
+    throw error;
+  }
+}
+
+export const GetManoObraEdit = async (id_proyecto) => {
+  try {
+    const requestBody = {
+      id: id_proyecto,
+    };
+    const response = await axios.post(`${API_URL}/GetManoObraEdit`, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener CPC:", error);
+    throw error;
+  }
+}
  
 

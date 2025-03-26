@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -11,14 +11,16 @@ import {
   Button,
   Chip,
   Box,
-  Typography
+  Typography,
+  CircularProgress
 } from '@mui/material';
 import {
   Edit as EditIcon,
   CheckCircle as CheckCircleIcon,
-  Warning as WarningIcon // Cambiado de ScheduleIcon a WarningIcon
+  Warning as WarningIcon
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
+import { CheckProjectData } from '../../api/Construccion';
 
 const StatusChip = styled(Chip)(({ theme, status }) => ({
   borderRadius: 8,
@@ -28,19 +30,98 @@ const StatusChip = styled(Chip)(({ theme, status }) => ({
     color: theme.palette.success.dark,
   }),
   ...(status === 'pending' && {
-    backgroundColor: theme.palette.error.light, // Cambiado de warning a error (rojo)
+    backgroundColor: theme.palette.error.light,
     color: theme.palette.error.dark,
   }),
 }));
 
 const EditTable = () => {
-  // Datos de ejemplo
+  const [projectStatus, setProjectStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { idNumero, nombreActividad, id_proyecto } = location.state || {};
+
+  useEffect(() => {
+    console.log("Datos recibidos:", location.state);
+    
+    const fetchProjectStatus = async () => {
+      try {
+        if (!id_proyecto) {
+          console.warn("No hay ID de proyecto - no se puede hacer la solicitud");
+          setLoading(false);
+          return;
+        }
+        
+        const response = await CheckProjectData(id_proyecto);
+        console.log("Respuesta recibida:", response);
+        
+        // Forzar CPC como completado (true) pero mantener el valor real
+        setProjectStatus({
+          ...response,
+          cpc: true // Visualmente siempre completado, pero guardamos el valor real
+        });
+      } catch (error) {
+        console.error("Error al obtener estado del proyecto:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjectStatus();
+  }, [id_proyecto, location.state]);
+
+  // Función de navegación mejorada
+  const handleNavigate = (route, item) => {
+    const state = {
+      id_proyecto,
+      // Para CPC enviamos datos adicionales y el estado real (si existe)
+      ...(route === '/proyectos/cpc' ? { 
+        nombreActividad, 
+        idNumero,
+        Status: projectStatus?.cpc ?? true // Envía true si no hay datos
+      } : { 
+        // Para otras rutas enviamos el estado del item
+        Status: projectStatus?.[item.apiKey] ?? false 
+      })
+    };
+    
+    navigate(route, { state });
+  };
+
+  // Definición de los items
   const items = [
-    { id: 1, name: 'Creación de CPC', status: 'completed', route: '/editar/cpc' },
-    { id: 2, name: 'Cronograma', status: 'pending', route: '/editar/cronograma' },
-    { id: 3, name: 'Asignación de Mano de Obra', status: 'pending', route: '/editar/mano-obra' },
-    { id: 4, name: 'EQUIPO', status: 'completed', route: '/editar/equipo' },
-    { id: 5, name: 'Descripcion Material', status: 'pending', route: '/editar/material' },
+    { 
+      id: 1, 
+      name: 'Creación de CPC', 
+      apiKey: 'cpc',
+      route: '/proyectos/cpc',
+      alwaysCompleted: true
+    },
+    { 
+      id: 2, 
+      name: 'Cronograma', 
+      apiKey: 'actividades', 
+      route: '/proyectos/cronograma' 
+    },
+    { 
+      id: 3, 
+      name: 'Asignación de Mano de Obra', 
+      apiKey: 'mano_obra', 
+      route: '/proyectos/AsignacionManoObra' 
+    },
+    { 
+      id: 4, 
+      name: 'EQUIPO', 
+      apiKey: 'equipo', 
+      route: '/proyectos/equipo' 
+    },
+    { 
+      id: 5, 
+      name: 'Descripcion Material', 
+      apiKey: 'materiales', 
+      route: '/proyectos/DescripcionMaterial' 
+    },
   ];
 
   const getStatusIcon = (status) => {
@@ -48,11 +129,33 @@ const EditTable = () => {
       case 'completed':
         return <CheckCircleIcon fontSize="small" />;
       case 'pending':
-        return <WarningIcon fontSize="small" />; // Cambiado a WarningIcon (rojo)
+        return <WarningIcon fontSize="small" />;
       default:
         return <WarningIcon fontSize="small" />;
     }
   };
+
+  const getItemStatus = (item) => {
+    if (item.alwaysCompleted) return 'completed';
+    if (!projectStatus) return 'pending';
+    return projectStatus[item.apiKey] ? 'completed' : 'pending';
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!projectStatus && id_proyecto) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <Typography color="error">No se pudo cargar el estado del proyecto</Typography>
+      </Box>
+    );
+  }
 
   return (
     <TableContainer 
@@ -65,7 +168,6 @@ const EditTable = () => {
         overflow: 'hidden'
       }}
     >
-      {/* Barra de títulos con fondo azul y texto blanco */}
       <Box sx={{ 
         p: 2,
         backgroundColor: 'primary.main',
@@ -101,7 +203,6 @@ const EditTable = () => {
         </Typography>
       </Box>
       
-      {/* Tabla sin encabezado visible */}
       <Table sx={{ minWidth: 650 }}>
         <TableHead sx={{ display: 'none' }}>
           <TableRow>
@@ -111,50 +212,53 @@ const EditTable = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {items.map((item) => (
-            <TableRow
-              key={item.id}
-              hover
-              sx={{
-                '&:last-child td, &:last-child th': { border: 0 },
-                '&:hover': { backgroundColor: 'action.hover' }
-              }}
-            >
-              <TableCell component="th" scope="row" sx={{ fontWeight: 500, width: '33%' }}>
-                {item.name}
-              </TableCell>
-              <TableCell sx={{ width: '33%', textAlign: 'center' }}> {/* Centrado agregado aquí */}
-                <Box display="flex" justifyContent="center"> {/* Contenedor flex para centrar */}
-                  <StatusChip
-                    icon={getStatusIcon(item.status)}
-                    label={item.status === 'completed' ? 'Completado' : 'Pendiente'}
-                    status={item.status}
-                  />
-                </Box>
-              </TableCell>
-              <TableCell align="right" sx={{ width: '33%', pr: 3 }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  size="small"
-                  component={Link}
-                  to={item.route}
-                  startIcon={<EditIcon />}
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    boxShadow: 'none',
-                    '&:hover': {
-                      boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
-                      transform: 'translateY(-1px)'
-                    }
-                  }}
-                >
-                  Editar
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
+          {items.map((item) => {
+            const status = getItemStatus(item);
+            
+            return (
+              <TableRow
+                key={item.id}
+                hover
+                sx={{
+                  '&:last-child td, &:last-child th': { border: 0 },
+                  '&:hover': { backgroundColor: 'action.hover' }
+                }}
+              >
+                <TableCell component="th" scope="row" sx={{ fontWeight: 500, width: '33%' }}>
+                  {item.name}
+                </TableCell>
+                <TableCell sx={{ width: '33%', textAlign: 'center' }}>
+                  <Box display="flex" justifyContent="center">
+                    <StatusChip
+                      icon={getStatusIcon(status)}
+                      label={status === 'completed' ? 'Completado' : 'Pendiente'}
+                      status={status}
+                    />
+                  </Box>
+                </TableCell>
+                <TableCell align="right" sx={{ width: '33%', pr: 3 }}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    onClick={() => handleNavigate(item.route, item)}
+                    startIcon={<EditIcon />}
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      boxShadow: 'none',
+                      '&:hover': {
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                        transform: 'translateY(-1px)'
+                      }
+                    }}
+                  >
+                    Editar
+                  </Button>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>

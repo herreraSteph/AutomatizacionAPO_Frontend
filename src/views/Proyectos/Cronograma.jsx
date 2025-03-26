@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation} from "react-router-dom";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import gantt from "dhtmlx-gantt";
 import MainCard from "ui-component/cards/MainCard";
@@ -16,6 +16,8 @@ const Cronograma = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [modalTitle, setModalTitle] = useState("Error");
   const [isDragging, setIsDragging] = useState(false);
+  const location = useLocation();
+  const { id_proyecto, Status } = location.state || {};
 
   useEffect(() => {
     // Configuración regional
@@ -294,11 +296,11 @@ const Cronograma = () => {
     }));
 
     try {
-      const response = await agregarActividades(data);
+      const response = await agregarActividades(data, id_proyecto);
       console.log(response);
 
       if (response.tipoError === 0) {
-        navigate("/proyectos/AsignacionManoObra");
+        navigate("/proyectos/AsignacionManoObra", { state: { id_proyecto, Status } });
       } else {
         setModalTitle("Error");
         setModalMessage("Algo ocurrió mal. Por favor, inténtelo de nuevo.");

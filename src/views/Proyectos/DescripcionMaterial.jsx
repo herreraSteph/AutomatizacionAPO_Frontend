@@ -18,7 +18,7 @@ import {
   TextField,
 } from "@mui/material";
 import { agregarMaterial } from "../../api/Construccion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const DescripcionMaterial = () => {
   const [selectedOption1, setSelectedOption1] = useState("");
@@ -33,7 +33,8 @@ const DescripcionMaterial = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const { id_proyecto, Status } = location.state || {};
   // Verificar la conexión a Internet
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -96,7 +97,7 @@ const DescripcionMaterial = () => {
         unidad: row.unidad,
       }));
 
-      const response = await agregarMaterial(materiales);
+      const response = await agregarMaterial(materiales, id_proyecto);
 
       if (response.tipoError === 0) {
         setSnackbarMessage("Los materiales se guardaron correctamente.");
