@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import ManoObraGantt from "./Gantt-Charts/ManoObraGantt";
 import MainCard from "ui-component/cards/MainCard";
 import CronogramaManoObra from "./Gantt-Charts/CronogramaEmpleados";
@@ -15,16 +15,18 @@ import {
   DialogActions,
   Typography
 } from "@mui/material";
-import { agregarEmpleados } from "../../api/Construccion";
+import { agregarEmpleados, GetManoObraEdit } from "../../api/Construccion";
 
 const AsignacionManoObra = () => {
   const cronogramaRef = useRef(null);
   const [showGantt, setShowGantt] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [openModal, setOpenModal] = useState(false); // Estado para controlar el modal
-  const [modalMessage, setModalMessage] = useState(""); // Mensaje del modal
-
+  const [openModal, setOpenModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [ganttData, setGanttData] = useState(null); // Estado para almacenar los datos del Gantt
+  const location = useLocation();
+  const { id_proyecto, Status } = location.state || {};
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,11 +36,30 @@ const AsignacionManoObra = () => {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
+    // Verificar el Status al montar el componente
+    const fetchInitialData = async () => {
+      if (Status) {
+        try {
+          setIsLoading(true);
+          const data = await GetManoObraEdit(id_proyecto);
+          setGanttData(data);
+        } catch (error) {
+          console.error('Error al obtener datos del Gantt:', error);
+          setModalMessage("Error al cargar los datos iniciales");
+          setOpenModal(true);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchInitialData();
+
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
+  }, [Status, id_proyecto]);
 
   const toggleGantt = () => {
     setShowGantt(!showGantt);
@@ -54,25 +75,21 @@ const AsignacionManoObra = () => {
       try {
         const datos = cronogramaRef.current.exportData();
         
-        // Validar si hay datos en el cronograma
-        // Validación robusta de los datos
+        if (!datos || datos.groups.length === 0) {
+          setModalMessage("Por favor complete el cronograma antes de continuar.");
+          setOpenModal(true);
+          setIsLoading(false);
+          return;
+        }
 
-      if (!datos || datos.groups.length === 0) {
-        setModalMessage("Por favor complete el cronograma antes de continuar.");
-        setOpenModal(true);
-        setIsLoading(false);
-        return;
-      }
-
-        const response = await agregarEmpleados(datos);
+        const response = await agregarEmpleados(datos, id_proyecto);
         if (response.tipoError === 0) {
-          navigate("/proyectos/equipo");
+          navigate("/proyectos/equipo", {state: {id_proyecto, Status}});
         } else {
           setModalMessage(response.mensaje || "Error al enviar los datos");
           setOpenModal(true);
         }
       } catch (error) {
-        
         setModalMessage("Error al procesar la solicitud. Por favor intente nuevamente.");
         setOpenModal(true);
         console.error('Error al agregar empleados:', error);
@@ -84,7 +101,6 @@ const AsignacionManoObra = () => {
 
   return (
     <MainCard title="Asignación de Mano de Obra">
-      {/* Alerta de conexión a Internet */}
       {!isOnline && (
         <Alert severity="warning" sx={{ marginBottom: 2 }}>
           <AlertTitle>Advertencia</AlertTitle>
@@ -92,12 +108,10 @@ const AsignacionManoObra = () => {
         </Alert>
       )}
 
-      {/* Botón para mostrar/ocultar ManoObraGantt */}
       <Button variant="contained" color="primary" onClick={toggleGantt}>
         {showGantt ? "Ocultar Gráfico" : "Mostrar Gráfico"}
       </Button>
 
-      {/* Botón para redirigir a /proyectos/equipo */}
       <Button
         variant="contained"
         color="secondary"
@@ -109,14 +123,13 @@ const AsignacionManoObra = () => {
         Siguiente
       </Button>
 
-      {/* Modal para mostrar mensajes */}
       <Dialog
         open={openModal}
         onClose={handleCloseModal}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-         <DialogTitle id="alert-dialog-title">
+        <DialogTitle id="alert-dialog-title">
           <Typography variant="h3" component="h3">Atención</Typography>
         </DialogTitle>
         <DialogContent>
@@ -131,11 +144,11 @@ const AsignacionManoObra = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Renderiza ManoObraGantt solo si showGantt es true */}
-      {showGantt && <ManoObraGantt />}
+      {showGantt && (
+        <ManoObraGantt idProyecto={id_proyecto} />
+      )}
 
-      {/* CronogramaManoObra se muestra siempre */}
-      <CronogramaManoObra ref={cronogramaRef} />
+      <CronogramaManoObra ref={cronogramaRef} initialData={Status ? ganttData : null} />
     </MainCard>
   );
 };

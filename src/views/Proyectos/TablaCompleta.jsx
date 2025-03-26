@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchOffIcon from "@mui/icons-material/SearchOff";
-import { ObtenerCPC } from "../../api/Construccion";
+import { ObtenerCPC, VerificarProyectoExistente } from "../../api/Construccion";
 
 const TablaCompleta = () => {
   const [tableData, setTableData] = useState([]);
@@ -102,10 +102,21 @@ const TablaCompleta = () => {
   };
 
   // Visualizar detalles
-  const handleVisualizar = (id, nombreActividad) => {
-    navigate("/proyectos/Editar", {
-      state: { id, nombreActividad },
-    });
+  const handleVisualizar = async (id, nombreActividad) => {
+    const response = await VerificarProyectoExistente(id);
+    const id_proyecto = response.isFinished;
+    console.log(id_proyecto);
+    
+    if(id_proyecto !== 0){
+      navigate("/proyectos/Editar", {
+        state: { idNumero: id, nombreActividad, id_proyecto},
+      });
+    }else{
+      navigate("/proyectos/CPC", {
+        state: { id, nombreActividad },
+      });
+    }
+    
   };
 
   // Manejar clic en filtro

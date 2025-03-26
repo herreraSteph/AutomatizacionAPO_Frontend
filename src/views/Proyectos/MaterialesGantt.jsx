@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react"; // Añadir useEffect
-import { useNavigate } from "react-router-dom"; // Importa useNavigate para la navegación
+import { useNavigate, useLocation } from "react-router-dom"; // Importa useNavigate para la navegación
 import ManoObraGantt from "./Gantt-Charts/ManoObraGantt";
 import MainCard from "ui-component/cards/MainCard";
 import Equipo from "./Gantt-Charts/CronogramaEquipo";
@@ -25,6 +25,8 @@ const MaterialesGantt = () => {
   const [openModal, setOpenModal] = useState(false); // Estado para controlar el modal
   const [modalMessage, setModalMessage] = useState(""); // Mensaje del modal
   const navigate = useNavigate(); // Obtén la función navigate para la navegación
+    const location = useLocation();
+    const { id_proyecto, Status } = location.state || {};
 
   // Verificar la conexión a Internet
   useEffect(() => {
@@ -60,9 +62,9 @@ const MaterialesGantt = () => {
           setIsLoading(false);
           return;
         }
-        const response = await agregarEquipo(datos);
+        const response = await agregarEquipo(datos, id_proyecto);
         if (response.tipoError === 0) {
-          navigate("/proyectos/DescripcionMaterial");
+          navigate("/proyectos/DescripcionMaterial",{state: {id_proyecto, Status}});
         } else {
           console.error("Error al enviar los datos:", response.mensaje);
         }
@@ -123,7 +125,7 @@ const MaterialesGantt = () => {
             </Dialog>
 
       {/* Renderiza ManoObraGantt solo si showGantt es true */}
-      {showGantt && <ManoObraGantt />}
+      {showGantt && <ManoObraGantt idProyecto={id_proyecto} />}
 
       <br />
 

@@ -5,15 +5,16 @@ import gantt from "dhtmlx-gantt";
 import "../../../assets/css/cronograma.css";
 import { obtenerActividades } from "../../../api/Construccion";
 
-const ManoObraGannt = () => {
+const ManoObraGannt = (props) => {
   const ganttContainer = useRef(null);
   const navigate = useNavigate();
+  
 
   // Función para transformar los datos al formato esperado por DHTMLX Gantt
   const transformData = async () => {
     try {
       // Obtener las tareas desde la API
-      const tasks = await obtenerActividades();
+      const tasks = await obtenerActividades(props.idProyecto);
 
       // Verificar si hay datos
       if (!tasks || tasks.length === 0) {

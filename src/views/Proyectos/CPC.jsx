@@ -155,9 +155,10 @@ const CPC = () => {
       .then((data) => {
         console.log("Proyecto creado exitosamente:", data);
         if (data.mensaje) {
-          localStorage.setItem("idProyecto", Number(data.mensaje));
+          const idproyecto = Number(data.mensaje); 
+          navigate('/proyectos/cronograma', {state: {id_proyecto: idproyecto, Status: false}});
         }
-        navigate('/proyectos/cronograma');
+        
       })
       .catch((error) => {
         console.error("Error al crear el proyecto:", error);
