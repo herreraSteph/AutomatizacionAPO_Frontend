@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // Añadir useEffect
+import React, { useState, useEffect } from "react";
 import {
   Select,
   MenuItem,
@@ -10,120 +10,170 @@ import {
   TableRow,
   Paper,
   Button,
-  CircularProgress,
-  Snackbar,
-  Alert, // Importar Alert
-  AlertTitle, // Importar AlertTitle
-  TablePagination,
+  Alert,
+  AlertTitle,
   TextField,
+  IconButton,
+  Typography,
+  Box,
+  TablePagination,
+  Skeleton
 } from "@mui/material";
-import { agregarMaterial } from "../../api/Construccion";
-import { useNavigate, useLocation } from "react-router-dom";
+import AddIcon from '@mui/icons-material/Add';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import { useNavigate } from "react-router-dom";
+import ListaMaterial from "./ListaMaterial";
 
 const DescripcionMaterial = () => {
+  // Estados para los selectores y búsqueda
   const [selectedOption1, setSelectedOption1] = useState("");
   const [selectedOption2, setSelectedOption2] = useState("");
   const [selectedOption3, setSelectedOption3] = useState("");
-  const [tableData, setTableData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { id_proyecto, Status } = location.state || {};
-  // Verificar la conexión a Internet
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [customMaterial, setCustomMaterial] = useState("");
+  
+  // Estados para las sugerencias y materiales seleccionados
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedMaterials, setSelectedMaterials] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+  
+  // Estados para UI
+  const [isOnline, setIsOnline] = useState(true);
+  const [showList, setShowList] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResultsCount, setSearchResultsCount] = useState(0);
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+  // Estados para paginación
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const navigate = useNavigate();
+
+  // Efecto para verificar conexión
+  useEffect(() => {
+    const handleOnlineStatusChange = () => {
+      setIsOnline(navigator.onLine);
+    };
+
+    window.addEventListener('online', handleOnlineStatusChange);
+    window.addEventListener('offline', handleOnlineStatusChange);
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener('online', handleOnlineStatusChange);
+      window.removeEventListener('offline', handleOnlineStatusChange);
     };
   }, []);
 
-  const options1 = ["Opción 1", "Opción 2"];
+  // Datos de ejemplo
+  const options1 = ["Acero", "Tubería", "Accesorios"];
   const options2 = {
-    "Opción 1": ["Subopción 1.1", "Subopción 1.2"],
-    "Opción 2": ["Subopción 2.1", "Subopción 2.2"],
-  };
-  const options3 = {
-    "Subopción 1.1": ["Material 1.1.1", "Material 1.1.2"],
-    "Subopción 1.2": ["Material 1.2.1", "Material 1.2.2"],
-    "Subopción 2.1": ["Material 2.1.1", "Material 2.1.2"],
-    "Subopción 2.2": ["Material 2.2.1", "Material 2.2.2"],
+    "Acero": ["Varillas", "Perfiles", "Alambrón"],
+    "Tubería": ["PVC", "CPVC", "Hierro"],
+    "Accesorios": ["Codos", "Tees", "Uniones"]
   };
 
+  const options3 = {
+    "Varillas": ["Varilla 1/4\"", "Varilla 1/2\"", "Varilla 3/4\""],
+    "Perfiles": ["Perfil C 2x1", "Perfil L 2x2", "Perfil U 3x1.5"],
+    "Alambrón": ["Alambrón #8", "Alambrón #10", "Alambrón #12"],
+    "PVC": ["PVC 1/2\"", "PVC 3/4\"", "PVC 1\""],
+    "CPVC": ["CPVC 1/2\"", "CPVC 3/4\"", "CPVC 1\""],
+    "Hierro": ["Hierro 1/2\"", "Hierro 3/4\"", "Hierro 1\""],
+    "Codos": ["Codo 90° 1/2\"", "Codo 45° 3/4\"", "Codo 90° 1\""],
+    "Tees": ["Tee 1/2\"", "Tee 3/4\"", "Tee 1\""],
+    "Uniones": ["Unión 1/2\"", "Unión 3/4\"", "Unión 1\""]
+  };
+
+  const materialOptions = [
+    // Acero
+    { cod: "AC-001", corta: "Varilla 1/4\"", larga: "Varilla corrugada 1/4\" Grado 60", unidad: "m", familia: "Varillas" },
+    { cod: "AC-002", corta: "Perfil C 2x1", larga: "Perfil estructural C 2x1 pulgadas", unidad: "m", familia: "Perfiles" },
+    // Tubería
+    { cod: "TB-001", corta: "PVC 1/2\"", larga: "Tubería PVC 1/2\" para agua", unidad: "m", familia: "PVC" },
+    { cod: "TB-002", corta: "Hierro 3/4\"", larga: "Tubería de hierro 3/4\"", unidad: "m", familia: "Hierro" },
+    // Accesorios
+    { cod: "ACC-001", corta: "Codo 90° 1/2\"", larga: "Codo PVC 90° 1/2\"", unidad: "unidad", familia: "Codos" },
+    { cod: "ACC-002", corta: "Tee 3/4\"", larga: "Tee PVC 3/4\"", unidad: "unidad", familia: "Tees" }
+  ];
+
+  // Función para renderizar skeletons durante la carga
+  const renderSkeletons = () => {
+    return Array(rowsPerPage).fill(0).map((_, index) => (
+      <TableRow key={`skeleton-${index}`}>
+        <TableCell><Skeleton variant="text" /></TableCell>
+        <TableCell><Skeleton variant="text" /></TableCell>
+        <TableCell><Skeleton variant="text" /></TableCell>
+        <TableCell><Skeleton variant="text" /></TableCell>
+        <TableCell><Skeleton variant="circular" width={40} height={40} /></TableCell>
+      </TableRow>
+    ));
+  };
+
+  // Función para realizar la búsqueda
+  const handleSearch = () => {
+    if (searchInput || customMaterial) {
+      setSearchLoading(true);
+      setShowResults(true);
+      
+      // Simulamos un retraso de red
+      setTimeout(() => {
+        const searchTerm = (customMaterial || searchInput).toLowerCase();
+        const filtered = materialOptions.filter(item =>
+          item.corta.toLowerCase().includes(searchTerm) ||
+          item.larga.toLowerCase().includes(searchTerm) ||
+          item.cod.toLowerCase().includes(searchTerm)
+        );
+        
+        setSuggestions(filtered);
+        setSearchResultsCount(filtered.length);
+        setSearchLoading(false);
+        setPage(0);
+      }, 800); // Retraso simulado de 800ms
+    } else {
+      setSuggestions([]);
+      setSearchResultsCount(0);
+      setShowResults(false);
+    }
+  };
+
+  // Handlers actualizados
   const handleOption1Change = (event) => {
     setSelectedOption1(event.target.value);
     setSelectedOption2("");
     setSelectedOption3("");
+    setSearchInput("");
+    setCustomMaterial("");
+    setSuggestions([]);
+    setShowResults(false);
   };
 
   const handleOption2Change = (event) => {
     setSelectedOption2(event.target.value);
     setSelectedOption3("");
+    setSearchInput("");
+    setCustomMaterial("");
+    setSuggestions([]);
+    setShowResults(false);
   };
 
   const handleOption3Change = (event) => {
     setSelectedOption3(event.target.value);
+    setSearchInput("");
+    setCustomMaterial("");
+    setSuggestions([]);
+    setShowResults(false);
   };
 
-  const handleAddToTable = () => {
-    if (selectedOption3) {
-      const newRow = {
-        id: tableData.length + 1,
-        descripcion: selectedOption3,
-        cantidad: Math.floor(Math.random() * 10) + 1,
-        unidad: "kg",
-      };
-      setTableData([...tableData, newRow]);
+  const handleAddMaterial = (material) => {
+    if (!selectedMaterials.some(m => m.cod === material.cod)) {
+      setSelectedMaterials(prev => [...prev, material]);
+    } else {
+      setSelectedMaterials(prev => prev.filter(m => m.cod !== material.cod));
     }
   };
 
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      const materiales = tableData.map((row) => ({
-        descripcion: row.descripcion,
-        cantidad: row.cantidad,
-        unidad: row.unidad,
-      }));
-
-      const response = await agregarMaterial(materiales, id_proyecto);
-
-      if (response.tipoError === 0) {
-        setSnackbarMessage("Los materiales se guardaron correctamente.");
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
-      } else {
-        setSnackbarMessage("Hubo un error al guardar los materiales.");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
-      }
-    } catch (error) {
-      setSnackbarMessage("Hubo un error al guardar los materiales.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
-  };
-
+  // Funciones para paginación
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -133,178 +183,241 @@ const DescripcionMaterial = () => {
     setPage(0);
   };
 
-  const handleCantidadChange = (event, id) => {
-    const newCantidad = event.target.value;
-    const updatedTableData = tableData.map((row) =>
-      row.id === id ? { ...row, cantidad: newCantidad } : row
-    );
-    setTableData(updatedTableData);
-  };
-
-  const handleUnidadChange = (event, id) => {
-    const newUnidad = event.target.value;
-    const updatedTableData = tableData.map((row) =>
-      row.id === id ? { ...row, unidad: newUnidad } : row
-    );
-    setTableData(updatedTableData);
+  // Función para verificar si un material está seleccionado
+  const isMaterialSelected = (cod) => {
+    return selectedMaterials.some(m => m.cod === cod);
   };
 
   return (
     <div style={{ padding: "20px" }}>
-      {/* Alerta de conexión a Internet */}
       {!isOnline && (
         <Alert severity="warning" sx={{ marginBottom: 2 }}>
           <AlertTitle>Advertencia</AlertTitle>
-          Parece que no estás conectado a Internet.
+          No estás conectado a Internet
         </Alert>
       )}
 
       <Paper sx={{ padding: 2, borderRadius: 2 }}>
-        {/* Selectores */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "30px", marginBottom: "30px" }}>
-          <Select
-            value={selectedOption1}
-            onChange={handleOption1Change}
-            displayEmpty
-            variant="outlined"
-            sx={{ width: "350px", height: "50px" }}
-          >
-            <MenuItem value="" disabled>Seleccionar</MenuItem>
-            {options1.map((option, index) => (
-              <MenuItem key={index} value={option}>{option}</MenuItem>
-            ))}
-          </Select>
+        {!showList ? (
+          <>
+            {/* Título "Materiales" */}
+            <Typography variant="h7" component="h1" sx={{ color: 'black', fontWeight: 'bold', marginBottom: 4 }}>
+              Materiales
+            </Typography>
 
-          <Select
-            value={selectedOption2}
-            onChange={handleOption2Change}
-            displayEmpty
-            variant="outlined"
-            sx={{ width: "350px", height: "50px" }}
-            disabled={!selectedOption1}
-          >
-            <MenuItem value="" disabled>Seleccionar</MenuItem>
-            {selectedOption1 && options2[selectedOption1].map((option, index) => (
-              <MenuItem key={index} value={option}>{option}</MenuItem>
-            ))}
-          </Select>
+            {/* Selectores de búsqueda */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+              gap: "30px", 
+              marginBottom: "30px"
+            }}>
+              {/* ConBox 1: Acero/Tubería/Accesorios */}
+              <Select
+                value={selectedOption1}
+                onChange={handleOption1Change}
+                displayEmpty
+                variant="outlined"
+                sx={{ height: "50px" }}
+              >
+                <MenuItem value="" disabled>Familias</MenuItem>
+                {options1.map((option, index) => (
+                  <MenuItem key={index} value={option}>{option}</MenuItem>
+                ))}
+              </Select>
 
-          <Select
-            value={selectedOption3}
-            onChange={handleOption3Change}
-            displayEmpty
-            variant="outlined"
-            sx={{ width: "350px", height: "50px" }}
-            disabled={!selectedOption2}
-          >
-            <MenuItem value="" disabled>Seleccionar</MenuItem>
-            {selectedOption2 && options3[selectedOption2].map((option, index) => (
-              <MenuItem key={index} value={option}>{option}</MenuItem>
-            ))}
-          </Select>
-        </div>
+              {/* ConBox 2: Subcategorías */}
+              <Select
+                value={selectedOption2}
+                onChange={handleOption2Change}
+                displayEmpty
+                variant="outlined"
+                sx={{ height: "50px" }}
+                disabled={!selectedOption1}
+              >
+                <MenuItem value="" disabled>SubFamilias</MenuItem>
+                {selectedOption1 && options2[selectedOption1]?.map((option, index) => (
+                  <MenuItem key={index} value={option}>{option}</MenuItem>
+                ))}
+              </Select>
 
-        {/* Botón para agregar a la tabla */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "30px" }}>
-          <Button
-            variant="contained"
-            onClick={handleAddToTable}
-            disabled={!selectedOption3}
-            sx={{
-              backgroundColor: "#060336",
-              color: "white",
-              padding: "8px 20px",
-              fontSize: "0.9rem",
-              borderRadius: "20px",
-            }}
-          >
-            Agregar a la Tabla
-          </Button>
-        </div>
+              {/* ConBox 3: Especificaciones */}
+              <Select
+                value={selectedOption3}
+                onChange={handleOption3Change}
+                displayEmpty
+                variant="outlined"
+                sx={{ height: "50px" }}
+                disabled={!selectedOption2}
+              >
+                <MenuItem value="" disabled>Categorias</MenuItem>
+                {selectedOption2 && options3[selectedOption2]?.map((option, index) => (
+                  <MenuItem key={index} value={option}>{option}</MenuItem>
+                ))}
+              </Select>
 
-        {/* Tabla */}
-        <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
-          <Table>
-            <TableHead sx={{ backgroundColor: "#060336" }}>
-              <TableRow>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Id</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Descripción del Material</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Cantidad</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Unidad</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tableData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-                <TableRow key={row.id} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>{row.descripcion}</TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      value={row.cantidad}
-                      onChange={(event) => handleCantidadChange(event, row.id)}
-                      variant="outlined"
-                      size="small"
-                      sx={{ width: "100px" }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={row.unidad}
-                      onChange={(event) => handleUnidadChange(event, row.id)}
-                      variant="outlined"
-                      size="small"
-                      sx={{ width: "100px" }}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <TablePagination
-            rowsPerPageOptions={[10, 50, 60]}
-            component="div"
-            count={tableData.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
+              {/* Buscador */}
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                gridColumn: '1 / -1',
+                maxWidth: '500px',
+                margin: '0 auto'
+              }}>
+                <TextField
+                  fullWidth
+                  value={searchInput}
+                  onChange={(e) => {
+                    setSearchInput(e.target.value);
+                    setCustomMaterial(e.target.value);
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearch();
+                    }
+                  }}
+                  label="Buscar material específico"
+                  variant="outlined"
+                  sx={{ height: "50px" }}
+                  InputProps={{
+                    endAdornment: searchInput && (
+                      <IconButton
+                        onClick={() => {
+                          setSearchInput("");
+                          setCustomMaterial("");
+                          setSuggestions([]);
+                          setShowResults(false);
+                        }}
+                        size="small"
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    ),
+                  }}
+                />
+                
+                {searchLoading ? (
+                  <Skeleton variant="rectangular" width={100} height={50} sx={{ borderRadius: 1 }} />
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={handleSearch}
+                    sx={{
+                      height: '50px',
+                      minWidth: '100px',
+                      backgroundColor: '#060336',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: '#002244'
+                      },
+                      fontWeight: 'bold',
+                      textTransform: 'none',
+                      fontSize: '16px'
+                    }}
+                  >
+                    Buscar
+                  </Button>
+                )}
+              </Box>
+            </div>
+
+            {/* Tabla de resultados con paginación */}
+            {showResults && (
+              <Paper sx={{ mb: 3 }}>
+                <TableContainer sx={{ maxHeight: 400 }}>
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>COD</TableCell>
+                        <TableCell>DESCRIPCIÓN CORTA</TableCell>
+                        <TableCell>DESCRIPCIÓN LARGA</TableCell>
+                        <TableCell>UNIDAD</TableCell>
+                        <TableCell>ACCIÓN</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {searchLoading ? (
+                        renderSkeletons()
+                      ) : suggestions.length > 0 ? (
+                        suggestions
+                          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                          .map((material) => (
+                            <TableRow key={material.cod} hover>
+                              <TableCell>{material.cod}</TableCell>
+                              <TableCell>{material.corta}</TableCell>
+                              <TableCell>{material.larga}</TableCell>
+                              <TableCell>{material.unidad}</TableCell>
+                              <TableCell>
+                                <IconButton 
+                                  color={isMaterialSelected(material.cod) ? "success" : "primary"}
+                                  onClick={() => handleAddMaterial(material)}
+                                >
+                                  {isMaterialSelected(material.cod) ? <CheckIcon /> : <AddIcon />}
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} align="center">
+                            No se encontraron resultados
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                
+                {/* Paginación */}
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component="div"
+                  count={suggestions.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  labelRowsPerPage="Filas por página:"
+                  labelDisplayedRows={({ from, to, count }) => 
+                    `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+                  }
+                />
+              </Paper>
+            )}
+
+            {/* Botón Siguiente */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                {selectedMaterials.length > 0 ? (
+                  <span>Materiales seleccionados: {selectedMaterials.length}</span>
+                ) : (
+                  <Skeleton variant="text" width={150} />
+                )}
+              </div>
+              <Button
+                variant="contained"
+                onClick={() => setShowList(true)}
+                disabled={selectedMaterials.length === 0}
+                sx={{
+                  backgroundColor: "#060336",
+                  color: "white",
+                  padding: "8px 20px",
+                  borderRadius: "20px",
+                }}
+              >
+                Siguiente
+              </Button>
+            </div>
+          </>
+        ) : (
+          <ListaMaterial 
+            selectedMaterials={selectedMaterials}
+            setSelectedMaterials={setSelectedMaterials}
+            onBack={() => setShowList(false)}
           />
-        </TableContainer>
-
-        {/* Botón Guardar y Descargar */}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "40px" }}>
-          <Button
-            variant="contained"
-            onClick={handleSave}
-            disabled={loading || tableData.length === 0}
-            sx={{
-              backgroundColor: "#060336",
-              color: "white",
-              padding: "8px 20px",
-              fontSize: "0.9rem",
-              borderRadius: "20px",
-              minWidth: "120px",
-            }}
-          >
-            {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Guardar"}
-          </Button>
-
-        
-        </div>
+        )}
       </Paper>
-
-      {/* Snackbar para notificaciones */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: "100%" }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </div>
   );
 };

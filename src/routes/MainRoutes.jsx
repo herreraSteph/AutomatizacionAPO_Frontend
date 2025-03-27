@@ -24,6 +24,7 @@ const TablaCompleta = Loadable(lazy(() => import('views/Proyectos/TablaCompleta'
 const PreciosUnitarios = Loadable(lazy(() => import('views/Proyectos/PreciosUnitarios')));
 const DescargaCPC = Loadable(lazy(() => import('views/Proyectos/DescargaCPC')));
 const Editar = Loadable(lazy(() => import('views/Proyectos/Editar')));
+const ListaMaterial = Loadable(lazy(() => import('views/Proyectos/ListaMaterial')));
 
 
 // ==============================|| MAIN ROUTING ||============================== //
@@ -118,6 +119,10 @@ const MainRoutes = {
         {
           path: 'Editar',
           element: <Editar />
+        },
+        {
+           path: 'ListaMaterial',
+           element: <ListaMaterial />
         }
        
       ]
