@@ -29,15 +29,15 @@ const proyectos = {
       id: 'crear-numero',
       title: 'Crear Numero',
       type: 'item',
-      url: '/proyectos/crear-numero',
+      url: 'proyectos/crear-numero',
       icon: icons.AddIcon,
       breadcrumbs: false
     },
     {
-      id: 'TablaCompleta',
+      id: 'TablaCompleta',  
       title: 'Proyectos pendientes',
       type: 'item',
-      url: '/proyectos/Pendientes',
+      url: 'proyectos/Pendientes',
       icon: icons.AddchartIcon,
       breadcrumbs: false
     },
@@ -46,7 +46,7 @@ const proyectos = {
       id: 'DescargaCPC',
       title: 'Proyectos Terminados',
       type: 'item',
-      url: '/proyectos/Descargar',
+      url: 'proyectos/Descargar',
       icon: icons.SaveAltIcon, // Ahora funciona correctamente
       breadcrumbs: false
     }
