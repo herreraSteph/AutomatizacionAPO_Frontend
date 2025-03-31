@@ -1,30 +1,24 @@
-# Usa una imagen base de Node.js para construir la aplicación
-FROM node:18 as build
+# Usa una imagen oficial de Node con la versión que necesites (ajústala)
+FROM node:16.20.2-alpine
 
+# Directorio de trabajo en el contenedor
 WORKDIR /app
 
-# Copia los archivos del proyecto al contenedor
-COPY package.json package-lock.json ./
+# Copia los archivos de configuración del proyecto
+COPY package.json .
+COPY package-lock.json .  # o yarn.lock si usas Yarn
 
-# Instala las dependencias
+# Instala dependencias con legacy-peer-deps (para resolver conflictos)
 RUN npm install --legacy-peer-deps
 
-# Copia todo el código fuente al contenedor
+# Copia el resto del proyecto
 COPY . .
 
-# Ejecuta la construcción
+# Construye la aplicación (ajusta si tu proyecto tiene configuración especial)
 RUN npm run build
 
-# Verifica la salida generada por Vite
-RUN ls -la /app/dist
+# Puerto que expone la aplicación (ajusta según tu vite.config.js)
+EXPOSE 3000
 
-# Usa una imagen ligera de Nginx para servir los archivos
-FROM nginx:alpine
-
-# Copia los archivos generados en la etapa de construcción a Nginx
-COPY --from=build /app/dist /usr/share/nginx/html
-
-EXPOSE 80
-
-# Comando para ejecutar el servidor Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Comando para iniciar la aplicación en desarrollo (si prefieres producción, usa 'npm run preview')
+CMD ["npm", "run", "dev"]

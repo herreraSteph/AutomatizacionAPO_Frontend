@@ -1,6 +1,7 @@
 node_modules
-build
-.dockerignore
-Dockerfile
-.git
-.gitignore
+dist
+.DS_Store
+.env.local
+.env.development
+.env.test
+.env.production
