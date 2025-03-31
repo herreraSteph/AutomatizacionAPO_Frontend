@@ -31,10 +31,11 @@ export default defineConfig({
     // this sets a default port to 3000
     port: 3000
   },
+  build: {
+    outDir: 'dist',
+  },
   preview: {
-    // this ensures that the browser opens upon preview start
-    open: true,
-    // this sets a default port to 3000
-    port: 3000
+    port: 10000,  // Render usa este puerto por defecto
+    host: '0.0.0.0'
   }
 });
