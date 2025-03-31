@@ -92,6 +92,7 @@ export const agregarEmpleados = async (empleados, id_proyecto) => {
       groups: empleados.groups,
       items: empleados.items,
     };
+    console.log(requestBody);
     const response = await axios.post(`${API_URL}/AgregarEmpleados`, requestBody,{
       headers:{
         'Content-Type': 'application/json',
@@ -125,7 +126,7 @@ export const agregarEquipo = async (equipo, id_proyecto) => {
   }
 }
 
-export const agregarMaterial = async (material, id_proyecto) => {
+export const agregarMaterial = async (id_proyecto, material) => {
   try{
     const requestBody = {
       idProyecto: id_proyecto,
@@ -263,4 +264,105 @@ export const GetManoObraEdit = async (id_proyecto) => {
   }
 }
  
+export const ObtenerFamilias = async () => {
+  try{
+    const response = await axios.post(`${API_URL}/ObtenerFamilias`,{
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener familias:', error);
+    throw error;
+  }
+}
 
+export const ObtenerSubfamiliasPorFamilia = async (id_familia) => {
+  try{
+    const requestBody = {
+      id: id_familia
+    }
+    const response = await axios.post(`${API_URL}/ObtenerSubfamiliasPorFamilia`, requestBody,{
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener subfamilias:', error);
+    throw error;
+  }
+}
+
+export const ObtenerCategoriasPorSubfamilia = async (id_subfamilia) => {
+  try{
+    const requestBody = {
+      id: id_subfamilia
+    }
+    const response = await axios.post(`${API_URL}/ObtenerCategoriasPorSubfamilia`, requestBody,{
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener categorias:', error);
+    throw error;
+  }
+}
+
+export const ObtenerNumeroMateriales = async (request) => {
+  try{
+    
+    const requestBody = {
+      categoria_id: request.categoria_id,
+      busqueda: request.busqueda,
+      numeroPagina: 0,
+      numeroRegistros: 0,
+    }
+    const response = await axios.post(`${API_URL}/ObtenerNumeroMateriales`, requestBody,{
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener numero materiales:', error);
+    throw error;
+  }
+}
+
+export const ObtenerMaterialesPaginados = async (search) => {
+  try{
+    const requestBody = {
+      categoria_id: search.categoria_id,
+      busqueda: search.busqueda,
+      numeroPagina: search.numeroPagina,
+      numeroRegistros: search.numeroRegistros,
+    }
+    const response = await axios.post(`${API_URL}/ObtenerMaterialesPaginados`, requestBody,{
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener numero materiales:', error);
+    throw error;
+  }
+}
+
+export const ObtenerMaterialesPorId = async (materiales) => {
+  try{
+    const response = await axios.post(`${API_URL}/ObtenerMaterialesPorId`, materiales, {
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener numero materiales:', error);
+    throw error;
+  }
+}

@@ -10,7 +10,7 @@
   "homepage": "https://berrydashboard.io/free",
   "scripts": {
     "start": "env-cmd -f .env vite",
-    "dev": "vite --host",
+    "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
     "preview": "vite preview",
