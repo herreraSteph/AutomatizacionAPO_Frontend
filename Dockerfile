@@ -3,24 +3,28 @@ FROM node:18 as build
 
 WORKDIR /app
 
+# Copia los archivos del proyecto al contenedor
 COPY package.json package-lock.json ./
 
+# Instala las dependencias
 RUN npm install --legacy-peer-deps
 
+# Copia todo el código fuente al contenedor
 COPY . .
 
+# Ejecuta la construcción
 RUN npm run build
 
-# Si la carpeta de salida es dist en vez de build
-RUN ls -la /app/dist  # Para verificar si existe
+# Verifica la salida generada por Vite
+RUN ls -la /app/dist
 
 # Usa una imagen ligera de Nginx para servir los archivos
 FROM nginx:alpine
 
-WORKDIR /usr/share/nginx/html
-
-COPY --from=build /app/dist .  # Cambia build por dist si es necesario
+# Copia los archivos generados en la etapa de construcción a Nginx
+COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
 
+# Comando para ejecutar el servidor Nginx
 CMD ["nginx", "-g", "daemon off;"]
