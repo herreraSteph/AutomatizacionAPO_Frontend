@@ -1,27 +1,26 @@
 # Usa una imagen base de Node.js para construir la aplicación
 FROM node:18 as build
 
-# Establece el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copia los archivos del proyecto al contenedor
 COPY package.json package-lock.json ./
 
-# Instala las dependencias con el flag --legacy-peer-deps
 RUN npm install --legacy-peer-deps
 
-# Copia el resto de los archivos y construye la aplicación
 COPY . .
+
 RUN npm run build
+
+# Si la carpeta de salida es dist en vez de build
+RUN ls -la /app/dist  # Para verificar si existe
 
 # Usa una imagen ligera de Nginx para servir los archivos
 FROM nginx:alpine
 
-# Copia los archivos de la carpeta build al directorio de Nginx
-COPY --from=build /app/build /usr/share/nginx/html
+WORKDIR /usr/share/nginx/html
 
-# Exponemos el puerto que usa Nginx
+COPY --from=build /app/dist .  # Cambia build por dist si es necesario
+
 EXPOSE 80
 
-# Comando para ejecutar el servidor de Nginx
 CMD ["nginx", "-g", "daemon off;"]
