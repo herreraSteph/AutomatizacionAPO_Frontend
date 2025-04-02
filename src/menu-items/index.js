@@ -5,10 +5,11 @@ import proyectos from './proyectos';
 import ProcesosUnitarios from './ProcesosUnitarios';
 
 // ==============================|| MENU ITEMS ||============================== //
-const rol = localStorage.getItem('rol');
+const rol = sessionStorage.getItem('rol');
 
 let items;
 // 1 significa construccion y 2 precios unitarios
+console.log(rol);
 if (rol === '1') {
   items = [dashboard, proyectos];
 } else if (rol === '2') {
