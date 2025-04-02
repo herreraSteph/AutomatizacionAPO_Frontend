@@ -42,7 +42,7 @@ import { Radio, RadioGroup, FormControlLabel } from "@mui/material";
 
 const options = [
   { label: "Ingeniería", icon: <Engineering /> },
-  { label: "Fabricación", icon: <Build /> },
+  { label: "Andamio", icon: <Build /> },
   { label: "Suministro", icon: <PrecisionManufacturing /> },
   { label: "Instalación", icon: <Handyman /> },
   { label: "Libranza", icon: <LocalAtm /> },
@@ -184,9 +184,11 @@ const handleSave = () => {
     equipoReferencia: equipoReferencia,
     ubicacion: ubicacion,
     condicionSeguridad: seguridadSeleccionada,
-    disenios: selected.map(item => item.label),
+    disenios: selected,
     tiposDocumentos: documentosAnexados // Cambiado de files.map(...) a documentosAnexados
   };
+
+  console.log("Datos enviados:", requestData);
 
   fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/CrearProyecto", {
     method: "POST",
