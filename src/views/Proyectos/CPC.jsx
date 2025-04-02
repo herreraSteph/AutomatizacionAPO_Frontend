@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import Autocomplete from '@mui/material/Autocomplete'; 
 import {
   Typography,
   TextField,
@@ -13,8 +14,17 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Button,
-  Alert, // Importar Alert
-  AlertTitle, // Importar AlertTitle
+  Alert,
+  AlertTitle,
+  Checkbox,
+  FormGroup,
+  FormLabel,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
+  CircularProgress
 } from "@mui/material";
 import {
   Engineering,
@@ -23,13 +33,16 @@ import {
   Handyman,
   LocalAtm,
   Support,
+  CloudUpload,
+  InsertDriveFile,
+  Delete
 } from "@mui/icons-material";
 import MainCard from "ui-component/cards/MainCard";
 import { Radio, RadioGroup, FormControlLabel } from "@mui/material";
 
 const options = [
   { label: "Ingeniería", icon: <Engineering /> },
-  { label: "Fabricación", icon: <Build /> },
+  { label: "Andamio", icon: <Build /> },
   { label: "Suministro", icon: <PrecisionManufacturing /> },
   { label: "Instalación", icon: <Handyman /> },
   { label: "Libranza", icon: <LocalAtm /> },
@@ -42,17 +55,20 @@ const CPC = () => {
   const [edificio, setEdificio] = useState("");
   const [equipoReferencia, setEquipoReferencia] = useState("");
   const [ubicacion, setUbicacion] = useState("");
-  const [seguridadSeleccionada, setSeguridadSeleccionada] = useState("");
+  const [seguridadSeleccionada, setSeguridadSeleccionada] = useState([]);
   const [tipoAcabado, setTipoAcabado] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [errors, setErrors] = useState({});
-  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [files, setFiles] = useState([]);
+  const [documentosAnexados, setDocumentosAnexados] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorAlert, setErrorAlert] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const { id, nombreActividad } = location.state || {};
 
-  // Verificar la conexión a Internet
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -87,7 +103,20 @@ const CPC = () => {
   };
 
   const handleSeguridadChange = (event) => {
-    setSeguridadSeleccionada(event.target.value);
+    const value = event.target.value;
+    setSeguridadSeleccionada(prev =>
+      prev.includes(value) 
+        ? prev.filter(item => item !== value)
+        : [...prev, value]
+    );
+  };
+  const handleDocumentosAnexadosChange = (event) => {
+    const value = event.target.value;
+    setDocumentosAnexados(prev =>
+      prev.includes(value) 
+        ? prev.filter(item => item !== value)
+        : [...prev, value]
+    );
   };
 
   const handleTipoAcabadoChange = (event) => {
@@ -98,76 +127,98 @@ const CPC = () => {
     setDescripcion(event.target.value);
   };
 
+  const handleFileUpload = (event) => {
+    const uploadedFiles = Array.from(event.target.files);
+    setFiles([...files, ...uploadedFiles]);
+  };
+
+  const handleRemoveFile = (index) => {
+    const newFiles = [...files];
+    newFiles.splice(index, 1);
+    setFiles(newFiles);
+  };
+
   const validateForm = () => {
     const newErrors = {};
 
     if (!tipoAcabado) {
-      newErrors.tipoAcabado = "El tipo de acabado es requerido.";
+      newErrors.tipoAcabado = "El Tipo de Acabado es Requerido.";
     }
     if (!descripcion) {
-      newErrors.descripcion = "La descripción es requerida.";
+      newErrors.descripcion = "La Descripción es Requerida.";
     }
     if (!placement) {
-      newErrors.placement = "El área es requerida.";
+      newErrors.placement = "El Area es Requerida.";
     }
     if (!edificio) {
-      newErrors.edificio = "El edificio es requerido.";
+      newErrors.edificio = "El Edificio es Requerido.";
     }
     if (!equipoReferencia) {
-      newErrors.equipoReferencia = "El equipo de referencia es requerido.";
+      newErrors.equipoReferencia = "El Equipo de Referencia es Requerido.";
     }
     if (!ubicacion) {
-      newErrors.ubicacion = "La ubicación es requerida.";
+      newErrors.ubicacion = "La Ubicación es Requerida.";
     }
-    if (!seguridadSeleccionada) {
-      newErrors.seguridadSeleccionada = "La condición de seguridad es requerida.";
+    if (seguridadSeleccionada.length === 0) {
+      newErrors.seguridadSeleccionada = "La Condición de Seguridad es Requerida.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+////aqui cambia
+const handleSave = () => {
+  if (!validateForm()) {
+    return;
+  }
 
-  const handleSave = () => {
-    if (!validateForm()) {
-      return;
-    }
+  setLoading(true);
+  setErrorAlert(null);
 
-    const requestBody = {
-      idNumero: id,
-      tipoAcabados: tipoAcabado,
-      descripcion: descripcion,
-      area: placement,
-      edificio: edificio,
-      equipoReferencia: equipoReferencia,
-      ubicacion: ubicacion,
-      condicionSeguridad: seguridadSeleccionada,
-      disenios: selected,
-    };
-
-    fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/CrearProyecto", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Proyecto creado exitosamente:", data);
-        if (data.mensaje) {
-          const idproyecto = Number(data.mensaje); 
-          navigate('/proyectos/cronograma', {state: {id_proyecto: idproyecto, Status: false}});
-        }
-        
-      })
-      .catch((error) => {
-        console.error("Error al crear el proyecto:", error);
-      });
+  const requestData = {
+    idNumero: id,
+    tipoAcabados: tipoAcabado,
+    descripcion: descripcion,
+    area: placement,
+    edificio: edificio,
+    equipoReferencia: equipoReferencia,
+    ubicacion: ubicacion,
+    condicionSeguridad: seguridadSeleccionada,
+    disenios: selected,
+    tiposDocumentos: documentosAnexados // Cambiado de files.map(...) a documentosAnexados
   };
 
+  console.log("Datos enviados:", requestData);
+
+  fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/CrearProyecto", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(requestData)
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.mensaje) {
+        const idproyecto = Number(data.mensaje); 
+        navigate('/proyectos/cronograma', {state: {id_proyecto: idproyecto, Status: false}});
+      }
+    })
+    .catch(error => {
+      console.error("Error al crear el proyecto:", error);
+      setErrorAlert("Error al crear el proyecto. Por favor intente nuevamente.");
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+};
   return (
     <Box sx={{ p: 2 }}>
-      {/* Alerta de conexión a Internet */}
       {!isOnline && (
         <Alert severity="warning" sx={{ marginBottom: 2 }}>
           <AlertTitle>Advertencia</AlertTitle>
@@ -175,9 +226,15 @@ const CPC = () => {
         </Alert>
       )}
 
+{errorAlert && (
+  <Alert severity="error" sx={{ marginBottom: 2 }} onClose={() => setErrorAlert(null)}>
+    <AlertTitle>Error</AlertTitle>
+    {errorAlert}
+  </Alert>
+)}
+
       <MainCard title="Creación de CPC" sx={{ textAlign: "center" }}>
         <Grid container spacing={2} alignItems="center">
-          {/* Select para Nom. Act.O pry */}
           <Grid item xs={6}>
             <FormControl fullWidth variant="outlined">
               <TextField
@@ -189,29 +246,36 @@ const CPC = () => {
             </FormControl>
           </Grid>
 
-          {/* Floating Label para Tipo de Acabados */}
           <Grid item xs={6}>
-            <TextField
-              select
-              fullWidth
-              label="Tipo de Acabados"
-              variant="outlined"
+            <Autocomplete
+              freeSolo
+              options={[
+                "ALQUIDALICO",
+                "AISLAMIENTO",
+                "EPOXICO",
+                "GALVANIZADO EN FRIO",
+                "GALVANIZADO POR INMERSION EN CALIENTE",
+                "NA"
+              ]}
               value={tipoAcabado}
-              onChange={handleTipoAcabadoChange}
-              sx={{ backgroundColor: "#fffff" }}
-              error={!!errors.tipoAcabado}
-            >
-              <MenuItem value="ALQUIDALICO">ALQUIDALICO</MenuItem>
-              <MenuItem value="AISLAMIENTO">AISLAMIENTO</MenuItem>
-              <MenuItem value="EPOXICO">EPOXICO</MenuItem>
-              <MenuItem value="GALVANIZADO EN FRIO">GALVANIZADO EN FRIO</MenuItem>
-              <MenuItem value="GALVANIZADO POR INMERSION EN CALIENTE">GALVANIZADO POR INMERSION EN CALIENTE</MenuItem>
-              <MenuItem value="NA">NA</MenuItem>
-            </TextField>
+              onChange={(event, newValue) => {
+                handleTipoAcabadoChange({ target: { value: newValue } });
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  fullWidth
+                  label="Tipo de Acabados"
+                  variant="outlined"
+                  sx={{ backgroundColor: "#ffffff" }}
+                  error={!!errors.tipoAcabado}
+                  onChange={(e) => handleTipoAcabadoChange(e)}
+                />
+              )}
+            />
             {errors.tipoAcabado && <Typography color="error">{errors.tipoAcabado}</Typography>}
           </Grid>
 
-          {/* Detalles de Diseño y materiales en Anexo */}
           <Grid item xs={12} display="flex" justifyContent="flex-end">
             <FormControl>
               <Typography variant="subtitle1" sx={{ textAlign: "center", mb: 1 }}>
@@ -272,10 +336,8 @@ const CPC = () => {
         </Grid>
       </MainCard>
 
-      {/* Sección de Ubicación */}
       <MainCard title="Ubicación" sx={{ mt: 2 }}>
         <Grid container spacing={2}>
-          {/* Placement Area */}
           <Grid item xs={6}>
             <FormControl fullWidth variant="outlined">
               <InputLabel>Area</InputLabel>
@@ -296,7 +358,6 @@ const CPC = () => {
             </FormControl>
           </Grid>
 
-          {/* Edificio */}
           <Grid item xs={6}>
             <FormControl fullWidth variant="outlined">
               <InputLabel>Edificio</InputLabel>
@@ -337,7 +398,6 @@ const CPC = () => {
             </FormControl>
           </Grid>
 
-          {/* Equipo de Referencia */}
           <Grid item xs={6}>
             <FormControl fullWidth variant="outlined">
               <InputLabel></InputLabel>
@@ -353,7 +413,6 @@ const CPC = () => {
             </FormControl>
           </Grid>
 
-          {/* RadioGroup para Interior/Exterior */}
           <Grid item xs={6}>
             <FormControl component="fieldset">
               <Typography variant="subtitle1" sx={{ mb: 1 }}>
@@ -374,37 +433,116 @@ const CPC = () => {
         </Grid>
       </MainCard>
 
-      {/* Sección de Condición de Seguridad */}
-      <MainCard title="Condición de Seguridad" sx={{ mt: 2 }}>
-        <Grid container spacing={2}>
-          {/* RadioGroup para Condición de Seguridad */}
-          <Grid item xs={12}>
-            <FormControl component="fieldset">
-              <RadioGroup
-                aria-label="seguridad"
-                name="seguridad"
-                value={seguridadSeleccionada}
-                onChange={handleSeguridadChange}
-              >
-                <FormControlLabel value="Trabajo en altura" control={<Radio />} label="Trabajo en altura" />
-                <FormControlLabel value="Espacio confinado" control={<Radio />} label="Espacio confinado" />
-                <FormControlLabel value="Medidores atmosf." control={<Radio />} label="Medidores atmosf." />
-              </RadioGroup>
-              {errors.seguridadSeleccionada && <Typography color="error">{errors.seguridadSeleccionada}</Typography>}
-            </FormControl>
-          </Grid>
-        </Grid>
-      </MainCard>
 
-      {/* Botón Guardar */}
+
+      <Grid item xs={12} md={6}>
+          <MainCard title="Condición de Seguridad" sx={{ mt: 2 }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <FormControl component="fieldset">
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox 
+                          checked={seguridadSeleccionada.includes("Trabajo en altura")}
+                          onChange={handleSeguridadChange}
+                          value="Trabajo en altura"
+                        />
+                      }
+                      label="Trabajo en Altura"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox 
+                          checked={seguridadSeleccionada.includes("Espacio confinado")}
+                          onChange={handleSeguridadChange}
+                          value="Espacio confinado"
+                        />
+                      }
+                      label="Espacio confinado"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox 
+                          checked={seguridadSeleccionada.includes("Medidores atmosf.")}
+                          onChange={handleSeguridadChange}
+                          value="Medidores atmosf."
+                        />
+                      }
+                      label="Medidores atmosf."
+                    />
+                  </FormGroup>
+                  {errors.seguridadSeleccionada && (
+                    <Typography color="error">{errors.seguridadSeleccionada}</Typography>
+                  )}
+                </FormControl>
+              </Grid>
+            </Grid>
+          </MainCard>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+  <MainCard title="Documentos Anexados A CPC" sx={{ mt: 2 }}>
+    <Grid container spacing={2}>
+      <Grid item xs={12}>
+        <FormControl component="fieldset">
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={documentosAnexados.includes("Planos o Dibujos")}
+                  onChange={handleDocumentosAnexadosChange}
+                  value="Planos o Dibujos"
+                />
+              }
+              label="Planos o Dibujos"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={documentosAnexados.includes("Rep.Fotografico")}
+                  onChange={handleDocumentosAnexadosChange}
+                  value="Rep.Fotografico"
+                />
+              }
+              label="Rep.Fotografico"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={documentosAnexados.includes("Lista de Material")}
+                  onChange={handleDocumentosAnexadosChange}
+                  value="Lista de Material"
+                />
+              }
+              label="Lista de Material"
+            />
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={documentosAnexados.includes("Otro")}
+                  onChange={handleDocumentosAnexadosChange}
+                  value="Otro"
+                />
+              }
+              label="Otro"
+            />
+          </FormGroup>
+        </FormControl>
+      </Grid>
+    </Grid>
+  </MainCard>
+</Grid>
+
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px", width: "100%" }}>
-        <Button 
-          variant="contained" 
-          onClick={handleSave} 
-          sx={{ backgroundColor: "#060336", width: "15%" }}
-        >
-          Guardar
-        </Button>
+      <Button 
+  variant="contained" 
+  onClick={handleSave} 
+  sx={{ backgroundColor: "#060336", width: "15%" }}
+  disabled={loading}
+>
+  {loading ? <CircularProgress size={24} color="inherit" /> : "Guardar"}
+</Button>
       </div>
     </Box>
   );
