@@ -5,6 +5,7 @@ import MainRoutes from './MainRoutes';
 import LoginRoutes from './AuthenticationRoutes';
 
 // ==============================|| ROUTING RENDER ||============================== //
+
 const router = createBrowserRouter([MainRoutes, LoginRoutes]);
 
 export default router;
