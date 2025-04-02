@@ -15,11 +15,12 @@ import {
   CircularProgress,
   Skeleton,
   Box,
-  Alert, // Importar Alert
-  AlertTitle, // Importar AlertTitle
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import ArchiveIcon from "@mui/icons-material/Archive";
+import EditIcon from "@mui/icons-material/Edit";
 import SearchOffIcon from "@mui/icons-material/SearchOff";
 import { ObtenerCPC } from "../../api/Construccion";
 import { DescargarCPC } from "../../api/Construccion";
@@ -30,6 +31,7 @@ const DescargaCPC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filters, setFilters] = useState({
     nombreActividad: "",
+    nombre: "",
     fechaCreacion: "",
     cliente: "",
     fechaInicio: "",
@@ -40,9 +42,8 @@ const DescargaCPC = () => {
   const [currentFilter, setCurrentFilter] = useState("");
   const [loading, setLoading] = useState(false);
   const [dataLoading, setDataLoading] = useState(true);
-  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
-  // Verificar la conexión a Internet
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -57,6 +58,7 @@ const DescargaCPC = () => {
   }, []);
 
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString("es-ES", {
       day: "2-digit",
@@ -68,17 +70,18 @@ const DescargaCPC = () => {
   useEffect(() => {
     const obtenerDatosCPC = async () => {
       try {
+        setDataLoading(true);
         const datosCPC = await ObtenerCPC(true);
-        console.log("Datos obtenidos de ObtenerCPC:", datosCPC);
 
         const datosTransformados = datosCPC.map((item) => ({
           id: item.id,
-          nombreActividad: item.nombre,
+          nombreActividad: item.nombre || "N/A",
+          nombre: item.nombre_proyecto || "N/A",
           fechaCreacion: formatDate(item.fecha_creacion),
-          cliente: item.cliente,
+          cliente: item.cliente || "N/A",
           fechaInicio: formatDate(item.fecha_inicio),
-          representante: item.representante,
-          prioridad: item.prioridad,
+          representante: item.representante || "N/A",
+          prioridad: item.prioridad || "N/A",
         }));
 
         setTableData(datosTransformados);
@@ -102,6 +105,11 @@ const DescargaCPC = () => {
   };
 
   const handleDescargar = async (id) => {
+    if (!isOnline) {
+      alert("No estás conectado a Internet. No se puede descargar.");
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await DescargarCPC(id);
@@ -111,8 +119,7 @@ const DescargaCPC = () => {
       link.href = url;
 
       const contentDisposition = response.headers["content-disposition"] || response.headers["Content-Disposition"];
-
-      let fileName = ``;
+      let fileName = "documento.pdf";
 
       if (contentDisposition && contentDisposition.includes("filename=")) {
         fileName = contentDisposition
@@ -129,9 +136,16 @@ const DescargaCPC = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error("Error al descargar el archivo:", error);
+      alert("Error al descargar el archivo. Por favor intenta nuevamente.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditar = (id) => {
+    // Implementa tu lógica de edición aquí
+    console.log("Editar elemento con ID:", id);
+    alert(`Modo edición para el ID: ${id}`);
   };
 
   const handleFilterClick = (event, filterName) => {
@@ -152,23 +166,20 @@ const DescargaCPC = () => {
   };
 
   const filteredData = tableData.filter((row) => {
-    return (
-      row.nombreActividad.toLowerCase().includes(filters.nombreActividad.toLowerCase()) &&
-      row.fechaCreacion.includes(filters.fechaCreacion) &&
-      row.cliente.toLowerCase().includes(filters.cliente.toLowerCase()) &&
-      row.fechaInicio.includes(filters.fechaInicio) &&
-      row.representante.toLowerCase().includes(filters.representante.toLowerCase()) &&
-      row.prioridad.toLowerCase().includes(filters.prioridad.toLowerCase())
-    );
+    return Object.entries(filters).every(([key, value]) => {
+      if (!value) return true;
+      const rowValue = String(row[key] || "").toLowerCase();
+      return rowValue.includes(value.toLowerCase());
+    });
   });
 
   const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "Alta":
+    switch (priority?.toLowerCase()) {
+      case "alta":
         return "#ff0000";
-      case "Media":
+      case "media":
         return "#ff9900";
-      case "Baja":
+      case "baja":
         return "#00cc00";
       default:
         return "#000000";
@@ -177,11 +188,10 @@ const DescargaCPC = () => {
 
   return (
     <div style={{ padding: "40px" }}>
-      {/* Alerta de conexión a Internet */}
       {!isOnline && (
         <Alert severity="warning" sx={{ marginBottom: 2 }}>
           <AlertTitle>Advertencia</AlertTitle>
-          Parece que no estás conectado a Internet.
+          Parece que no estás conectado a Internet. Algunas funciones pueden no estar disponibles.
         </Alert>
       )}
 
@@ -195,17 +205,17 @@ const DescargaCPC = () => {
             <Table>
               <TableHead sx={{ backgroundColor: "#060336" }}>
                 <TableRow>
-                  {Array.from({ length: 7 }).map((_, index) => (
+                  {["Nombre Actividad", "Nombre Proyecto", "Fecha Creación", "Cliente", "Fecha Inicio", "Representante", "Prioridad", "Editar", "Descargar"].map((header, index) => (
                     <TableCell key={index} sx={{ color: "white", fontWeight: "bold" }}>
-                      <Skeleton variant="text" />
+                      <Skeleton variant="text" width={100} />
                     </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Array.from({ length: rowsPerPage }).map((_, index) => (
-                  <TableRow key={index}>
-                    {Array.from({ length: 7 }).map((_, cellIndex) => (
+                {Array.from({ length: rowsPerPage }).map((_, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {Array.from({ length: 9 }).map((_, cellIndex) => (
                       <TableCell key={cellIndex}>
                         <Skeleton variant="text" />
                       </TableCell>
@@ -231,73 +241,109 @@ const DescargaCPC = () => {
           >
             <SearchOffIcon sx={{ fontSize: 60, color: "gray", mb: 2 }} />
             <Typography variant="h6" sx={{ color: "gray" }}>
-              No se Encuentran Datos
+              No se encontraron datos coincidentes
             </Typography>
           </Box>
         ) : (
-          <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
-            <Table>
-              <TableHead sx={{ backgroundColor: "#060336" }}>
-                <TableRow>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      Nom.Act.O.Pry
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleFilterClick(e, "nombreActividad")}
-                        sx={{ color: "white", marginLeft: 1 }}
-                      >
-                        <FilterListIcon fontSize="small" />
-                      </IconButton>
-                    </div>
-                  </TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Fecha de Creación</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Cliente</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Fecha de Inicio</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Representante</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Prioridad</TableCell>
-                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>Descargar</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-                  <TableRow key={row.id} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
-                    <TableCell>{row.nombreActividad}</TableCell>
-                    <TableCell>{row.fechaCreacion}</TableCell>
-                    <TableCell>{row.cliente}</TableCell>
-                    <TableCell>{row.fechaInicio}</TableCell>
-                    <TableCell>{row.representante}</TableCell>
-                    <TableCell
-                      sx={{
-                        color: getPriorityColor(row.prioridad),
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {row.prioridad}
+          <>
+            <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
+              <Table>
+                <TableHead sx={{ backgroundColor: "#060336" }}>
+                  <TableRow>
+                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        Nom.Act.O.Pry
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleFilterClick(e, "nombreActividad")}
+                          sx={{ color: "white", marginLeft: 1 }}
+                        >
+                          <FilterListIcon fontSize="small" />
+                        </IconButton>
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <IconButton
-                        onClick={() => handleDescargar(row.id)}
-                        sx={{ color: "#060336" }}
-                        disabled={loading}
-                      >
-                        {loading ? <CircularProgress size={24} /> : <ArchiveIcon />}
-                      </IconButton>
+                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        Nombre Proyecto
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleFilterClick(e, "nombre")}
+                          sx={{ color: "white", marginLeft: 1 }}
+                        >
+                          <FilterListIcon fontSize="small" />
+                        </IconButton>
+                      </div>
+                    </TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                      Fecha Creación
+                    </TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                      Cliente
+                    </TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                      Fecha Inicio
+                    </TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                      Representante
+                    </TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                      Prioridad
+                    </TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                      Editar
+                    </TableCell>
+                    <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                      Descargar
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <TablePagination
-              rowsPerPageOptions={[10, 50, 60]}
-              component="div"
-              count={filteredData.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
+                    <TableRow key={row.id} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
+                      <TableCell>{row.nombreActividad}</TableCell>
+                      <TableCell>{row.nombre}</TableCell>
+                      <TableCell>{row.fechaCreacion}</TableCell>
+                      <TableCell>{row.cliente}</TableCell>
+                      <TableCell>{row.fechaInicio}</TableCell>
+                      <TableCell>{row.representante}</TableCell>
+                      <TableCell sx={{ color: getPriorityColor(row.prioridad), fontWeight: "bold" }}>
+                        {row.prioridad}
+                      </TableCell>
+                      <TableCell>
+                        <IconButton
+                          onClick={() => handleEditar(row.id)}
+                          sx={{ color: "#060336" }}
+                          aria-label="Editar"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </TableCell>
+                      <TableCell>
+                        <IconButton
+                          onClick={() => handleDescargar(row.id)}
+                          sx={{ color: "#060336" }}
+                          disabled={loading || !isOnline}
+                          aria-label="Descargar"
+                        >
+                          {loading ? <CircularProgress size={24} /> : <ArchiveIcon />}
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <TablePagination
+                rowsPerPageOptions={[10, 25, 50]}
+                component="div"
+                count={filteredData.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                labelRowsPerPage="Filas por página:"
+              />
+            </TableContainer>
+          </>
         )}
 
         <Popover
@@ -313,15 +359,16 @@ const DescargaCPC = () => {
             horizontal: "left",
           }}
         >
-          <div style={{ padding: "10px" }}>
+          <Box sx={{ p: 2 }}>
             <TextField
               label={`Filtrar por ${currentFilter}`}
               variant="outlined"
               value={filters[currentFilter] || ""}
               onChange={handleFilterChange}
               size="small"
+              autoFocus
             />
-          </div>
+          </Box>
         </Popover>
       </Paper>
     </div>

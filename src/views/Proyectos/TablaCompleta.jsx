@@ -17,7 +17,7 @@ import {
   Typography,
   Box,
   Alert,
-  AlertTitle, // Importar Alert y AlertTitle
+  AlertTitle,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchOffIcon from "@mui/icons-material/SearchOff";
@@ -30,6 +30,7 @@ const TablaCompleta = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [filters, setFilters] = useState({
     nombreActividad: "",
+    nombre: "", // Cambiado de nombreProyecto a nombre
     fechaCreacion: "",
     cliente: "",
     fechaInicio: "",
@@ -38,10 +39,9 @@ const TablaCompleta = () => {
   });
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("");
-  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const navigate = useNavigate();
 
-  // Verificar la conexión a Internet
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -55,7 +55,6 @@ const TablaCompleta = () => {
     };
   }, []);
 
-  // Obtener datos de la API
   useEffect(() => {
     const obtenerDatosCPC = async () => {
       try {
@@ -63,6 +62,7 @@ const TablaCompleta = () => {
         const datosTransformados = datosCPC.map((item) => ({
           id: item.id_numero,
           nombreActividad: item.nombre,
+          nombre: item.nombre_proyecto || "N/A", // Cambiado de nombreProyecto a nombre
           fechaCreacion: formatDate(item.fecha_creacion),
           cliente: item.cliente,
           fechaInicio: formatDate(item.fecha_inicio),
@@ -80,7 +80,6 @@ const TablaCompleta = () => {
     obtenerDatosCPC();
   }, []);
 
-  // Formatear fecha
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("es-ES", {
@@ -90,18 +89,15 @@ const TablaCompleta = () => {
     });
   };
 
-  // Cambiar página
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
-  // Cambiar filas por página
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  // Visualizar detalles
   const handleVisualizar = async (id, nombreActividad) => {
     const response = await VerificarProyectoExistente(id);
     const id_proyecto = response.isFinished;
@@ -116,21 +112,17 @@ const TablaCompleta = () => {
         state: { id, nombreActividad },
       });
     }
-    
   };
 
-  // Manejar clic en filtro
   const handleFilterClick = (event, filterName) => {
     setFilterAnchorEl(event.currentTarget);
     setCurrentFilter(filterName);
   };
 
-  // Cerrar filtro
   const handleFilterClose = () => {
     setFilterAnchorEl(null);
   };
 
-  // Cambiar valor del filtro
   const handleFilterChange = (event) => {
     const { value } = event.target;
     setFilters({
@@ -139,10 +131,10 @@ const TablaCompleta = () => {
     });
   };
 
-  // Filtrar datos
   const filteredData = tableData.filter((row) => {
     return (
       row.nombreActividad.toLowerCase().includes(filters.nombreActividad.toLowerCase()) &&
+      row.nombre.toLowerCase().includes(filters.nombre.toLowerCase()) && // Cambiado de nombreProyecto a nombre
       row.fechaCreacion.includes(filters.fechaCreacion) &&
       row.cliente.toLowerCase().includes(filters.cliente.toLowerCase()) &&
       row.fechaInicio.includes(filters.fechaInicio) &&
@@ -151,7 +143,6 @@ const TablaCompleta = () => {
     );
   });
 
-  // Obtener color de prioridad
   const getPriorityColor = (priority) => {
     switch (priority) {
       case "Alta":
@@ -167,7 +158,6 @@ const TablaCompleta = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      {/* Alerta de conexión a Internet */}
       {!isOnline && (
         <Alert severity="warning" sx={{ marginBottom: 2 }}>
           <AlertTitle>Warning</AlertTitle>
@@ -178,12 +168,11 @@ const TablaCompleta = () => {
       <Paper sx={{ padding: 2, borderRadius: 2 }}>
         <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Numeros Creados</h1>
         {loading ? (
-          // Skeleton Loading
           <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
             <Table>
               <TableHead sx={{ backgroundColor: "#060336" }}>
                 <TableRow>
-                  {Array.from({ length: 7 }).map((_, index) => (
+                  {Array.from({ length: 8 }).map((_, index) => (
                     <TableCell key={index} sx={{ color: "white", fontWeight: "bold" }}>
                       <Skeleton variant="text" />
                     </TableCell>
@@ -193,7 +182,7 @@ const TablaCompleta = () => {
               <TableBody>
                 {Array.from({ length: rowsPerPage }).map((_, index) => (
                   <TableRow key={index}>
-                    {Array.from({ length: 7 }).map((_, cellIndex) => (
+                    {Array.from({ length: 8 }).map((_, cellIndex) => (
                       <TableCell key={cellIndex}>
                         <Skeleton variant="text" />
                       </TableCell>
@@ -204,7 +193,6 @@ const TablaCompleta = () => {
             </Table>
           </TableContainer>
         ) : filteredData.length === 0 ? (
-          // Mensaje cuando no hay datos
           <Box
             sx={{
               display: "flex",
@@ -224,7 +212,6 @@ const TablaCompleta = () => {
             </Typography>
           </Box>
         ) : (
-          // Tabla con datos
           <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
             <Table>
               <TableHead sx={{ backgroundColor: "#060336" }}>
@@ -235,6 +222,18 @@ const TablaCompleta = () => {
                       <IconButton
                         size="small"
                         onClick={(e) => handleFilterClick(e, "nombreActividad")}
+                        sx={{ color: "white", marginLeft: 1 }}
+                      >
+                        <FilterListIcon fontSize="small" />
+                      </IconButton>
+                    </div>
+                  </TableCell>
+                  <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                      Nombre
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleFilterClick(e, "nombre")} // Cambiado de nombreProyecto a nombre
                         sx={{ color: "white", marginLeft: 1 }}
                       >
                         <FilterListIcon fontSize="small" />
@@ -253,6 +252,7 @@ const TablaCompleta = () => {
                 {filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
                   <TableRow key={row.id} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
                     <TableCell>{row.nombreActividad}</TableCell>
+                    <TableCell>{row.nombre}</TableCell> {/* Cambiado de nombreProyecto a nombre */}
                     <TableCell>{row.fechaCreacion}</TableCell>
                     <TableCell>{row.cliente}</TableCell>
                     <TableCell>{row.fechaInicio}</TableCell>
