@@ -17,7 +17,7 @@ const obtenerIdProyecto = () => {
   }
 };
 const Obtenermessage=() => { 
-const message = localStorage.getItem('message');
+const message = sessionStorage.getItem('message');
 if(message){
   idusuario = message;
     }else{

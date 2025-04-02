@@ -5,7 +5,7 @@ const RedirectComponent = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const message = localStorage.getItem('message');
+    const message = sessionStorage.getItem('message');
     if (message) {
       navigate('/dashboard/default');
     } else {

@@ -58,8 +58,8 @@ const AuthLogin = ({ ...others }) => {
 
       console.log('Respuesta de la API:', response.data);
 
-      localStorage.setItem('message', response.data.mensaje);
-      localStorage.setItem('rol', response.data.rol);
+      sessionStorage.setItem('message', response.data.mensaje);
+      sessionStorage.setItem('rol', response.data.rol);
       navigate('/');
     } catch (error) {
       if (error.response) {

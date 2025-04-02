@@ -51,9 +51,11 @@ const ProfileSection = () => {
   const anchorRef = useRef(null);
 
   const handleLogout = async () => {
-    console.log('Logout');
-    // Aquí puedes agregar la lógica de cierre de sesión, por ejemplo, limpiar el estado global o las cookies
-    navigate('/pages/login/login3');
+    sessionStorage.clear();
+    navigate('/', { replace: true });
+    
+    // Forzar recarga si es necesario
+    window.location.reload();
   };
 
   const handleClose = (event) => {

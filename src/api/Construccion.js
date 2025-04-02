@@ -5,19 +5,9 @@ import axios from 'axios';
 const API_URL = 'https://automatizacionapo-backend.onrender.com/api/Construccion';
 
 // Variable global para almacenar el idProyecto
-let idProyecto;
 let idusuario;
-// Función para obtener el idProyecto del localStorage
-const obtenerIdProyecto = () => {
-  const message = localStorage.getItem('idProyecto');
-  if (message) {
-    idProyecto = message; // Asumimos que el idProyecto está en el objeto message
-  } else {
-    throw new Error('No se encontró el idProyecto en el localStorage');
-  }
-};
 const Obtenermessage=() => { 
-const message = localStorage.getItem('message');
+const message = sessionStorage.getItem('message');
 if(message){
   idusuario = message;
     }else{

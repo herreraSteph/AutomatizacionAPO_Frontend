@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+import RedirectComponent from "./RedirectComponent";
 import { element } from 'prop-types';
 
 // dashboard routing
@@ -18,7 +19,6 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const DescripcionMaterial = Loadable(lazy(() => import('views/Proyectos/DescripcionMaterial')));
 const ManoObra = Loadable(lazy(() => import('views/Proyectos/AsignacionManoObra')));
 const MaterialesGantt = Loadable(lazy(() => import('views/Proyectos/MaterialesGantt')));
-import RedirectComponent from "./RedirectComponent";
 const CPC = Loadable(lazy(() => import('views/Proyectos/CPC')));
 const TablaCompleta = Loadable(lazy(() => import('views/Proyectos/TablaCompleta')));
 const PreciosUnitarios = Loadable(lazy(() => import('views/Proyectos/PreciosUnitarios')));
