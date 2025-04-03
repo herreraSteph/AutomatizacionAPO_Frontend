@@ -2,46 +2,137 @@ import React, { useState, useEffect, useImperativeHandle } from "react";
 import Timeline from "react-calendar-timeline";
 import "react-calendar-timeline/dist/style.css";
 import moment from "moment";
-import { Grid, TextField, MenuItem } from "@mui/material";
+import { Grid, TextField, MenuItem, Modal, Box, Button, Typography } from "@mui/material";
 import { obtenerEmpleados } from "../../../api/Construccion";
 
-// Función para generar un ID aleatorio de 7 dígitos
-const generateRandomId = () => {
-  return Math.floor(1000000 + Math.random() * 9000000); // Genera un número aleatorio de 7 dígitos
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  borderRadius: 2,
 };
 
+const generateRandomId = () => Math.floor(1000000 + Math.random() * 9000000);
+
 const CronogramaEmpleados = React.forwardRef((props, ref) => {
-  const [groups, setGroups] = useState([
-    {
-      id: generateRandomId(), // ID único generado aleatoriamente para el grupo por defecto
-      title: "Encabezado", // Título del grupo por defecto
-      isHeader: true, // Propiedad para identificar el grupo de encabezado
-    },
-  ]); // Grupo por defecto como encabezado
-  const [items, setItems] = useState([]); // Sin ítems iniciales
+  const initialGroupsState = [{
+    id: generateRandomId(),
+    title: "Encabezado",
+    isHeader: true,
+  }];
+
+  const [groups, setGroups] = useState(initialGroupsState);
+  const [items, setItems] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [comboBox1, setComboBox1] = useState("");
   const [comboBox2, setComboBox2] = useState("");
   const [dataForComboBox2, setDataForComboBox2] = useState([]);
-  const [itemTitle, setItemTitle] = useState(1); // Valor inicial del input numérico
+  const [itemTitle, setItemTitle] = useState("1");
+  
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [tempHrsXJor, setTempHrsXJor] = useState("");
 
-  // Definir defaultTimeStart y defaultTimeEnd aquí, para que estén disponibles en todo el componente
   const defaultTimeStart = moment().startOf("day").subtract(7, "days");
   const defaultTimeEnd = moment().startOf("day").add(30, "days");
 
+  const calcularJornadasYHoras = (titulo, startTime, endTime, currentGroups, groupId) => {
+    const grupo = currentGroups.find(g => g.id === groupId);
+    if (!grupo || !grupo.hrsXJor) return {
+      jornadasNormales: 0,
+      horasNormales: 0,
+      jornadasExtras: 0,
+      horasExtras: 0
+    };
+
+    const tituloNum = parseFloat(titulo) || 0;
+    const duracionDias = moment(endTime).diff(moment(startTime), "days");
+    const numeroJornadas = tituloNum * duracionDias;
+
+    let jornadasExtras = 0;
+    let horasExtras = 0;
+
+    for (let i = 0; i < duracionDias; i++) {
+      const fecha = moment(startTime).add(i, "days");
+      if (fecha.day() === 0 || fecha.day() === 6) {
+        jornadasExtras += tituloNum;
+        horasExtras += tituloNum * grupo.hrsXJor;
+      }
+    }
+
+    return {
+      jornadasNormales: numeroJornadas - jornadasExtras,
+      horasNormales: (numeroJornadas - jornadasExtras) * grupo.hrsXJor,
+      jornadasExtras,
+      horasExtras,
+    };
+  };
+
+  useEffect(() => {
+    if (props.initialData) {
+      const { manoObraEditDtos, itemEditDtos } = props.initialData;
+
+      const baseGroups = manoObraEditDtos.map(g => ({
+        id: g.id_group,
+        title: g.nombre,
+        hrsXJor: parseFloat(g.hrs_x_jor),
+        jor: 0,
+        hrsNor: 0,
+        jorExt: 0,
+        hrsExt: 0,
+        id_empleado: g.id_empleado
+      }));
+
+      const mappedItems = itemEditDtos.map(i => ({
+        id: i.id,
+        group: i.group_id,
+        title: i.title,
+        start_time: i.start_time,
+        end_time: i.end_time
+      }));
+
+      const groupsWithCalculations = baseGroups.map(group => {
+        const groupItems = mappedItems.filter(item => item.group === group.id);
+        let totals = { jor: 0, hrsNor: 0, jorExt: 0, hrsExt: 0 };
+
+        groupItems.forEach(item => {
+          const calculo = calcularJornadasYHoras(
+            item.title,
+            item.start_time,
+            item.end_time,
+            [...initialGroupsState, ...baseGroups],
+            group.id
+          );
+          
+          totals.jor += calculo.jornadasNormales;
+          totals.hrsNor += parseFloat(calculo.horasNormales.toFixed(2));
+          totals.jorExt += calculo.jornadasExtras;
+          totals.hrsExt += parseFloat(calculo.horasExtras.toFixed(2));
+        });
+
+        return { ...group, ...totals };
+      });
+
+      setGroups([...initialGroupsState, ...groupsWithCalculations]);
+      setItems(mappedItems);
+    }
+  }, [props.initialData]);
+
   useEffect(() => {
     if (comboBox1) {
-      // Llamar a la API para obtener los empleados según la opción seleccionada
       obtenerEmpleados(comboBox1)
-        .then((response) => {
-          setDataForComboBox2(response); // Asignar los datos obtenidos al segundo combobox
-        })
-        .catch((error) => {
+        .then(response => setDataForComboBox2(response))
+        .catch(error => {
           console.error("Error al obtener empleados:", error);
-          setDataForComboBox2([]); // Limpiar el combobox en caso de error
+          setDataForComboBox2([]);
         });
     } else {
-      setDataForComboBox2([]); // Limpiar el combobox si no hay opción seleccionada
+      setDataForComboBox2([]);
     }
   }, [comboBox1]);
 
@@ -53,70 +144,48 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [selectedItemId]);
 
-  const esFinDeSemana = (fecha) => {
-    const dia = moment(fecha).day(); // 0 (domingo) o 6 (sábado)
-    return dia === 0 || dia === 6;
-  };
-
-  const calcularJornadasYHoras = (titulo, startTime, endTime, groupId) => {
-    const duracionDias = moment(endTime).diff(moment(startTime), "days"); // Duración en días
-    const numeroJornadas = titulo * duracionDias; // Jornadas = título * duración en días
-
-    // Calcular jornadas y horas extras (fines de semana)
-    let jornadasExtras = 0;
-    let horasExtras = 0;
-
-    for (let i = 0; i < duracionDias; i++) {
-      const fecha = moment(startTime).add(i, "days");
-      if (esFinDeSemana(fecha)) {
-        jornadasExtras += titulo;
-        horasExtras += titulo * groups.find((group) => group.id === groupId).hrsXJor;
-      }
-    }
-
-    return {
-      jornadasNormales: numeroJornadas - jornadasExtras,
-      horasNormales: (numeroJornadas - jornadasExtras) * groups.find((group) => group.id === groupId).hrsXJor,
-      jornadasExtras,
-      horasExtras,
-    };
-  };
-
   const actualizarHorasEnGrupo = (groupId, titulo, startTime, endTime, operacion = "sumar") => {
-    const grupo = groups.find((group) => group.id === groupId);
-    if (!grupo) return;
+    setGroups(prevGroups => {
+      const grupo = prevGroups.find(g => g.id === groupId);
+      if (!grupo) return prevGroups;
 
-    const { jornadasNormales, horasNormales, jornadasExtras, horasExtras } = calcularJornadasYHoras(
-      titulo,
-      startTime,
-      endTime,
-      groupId
-    );
+      const calculo = calcularJornadasYHoras(
+        titulo,
+        startTime,
+        endTime,
+        prevGroups,
+        groupId
+      );
 
-    setGroups((prevGroups) =>
-      prevGroups.map((group) =>
+      return prevGroups.map(group => 
         group.id === groupId
           ? {
               ...group,
-              jor: operacion === "sumar" ? group.jor + jornadasNormales : group.jor - jornadasNormales,
-              hrsNor: operacion === "sumar" ? group.hrsNor + horasNormales : group.hrsNor - horasNormales,
-              jorExt: operacion === "sumar" ? group.jorExt + jornadasExtras : group.jorExt - jornadasExtras,
-              hrsExt: operacion === "sumar" ? group.hrsExt + horasExtras : group.hrsExt - horasExtras,
+              jor: operacion === "sumar" ? 
+                group.jor + calculo.jornadasNormales : 
+                group.jor - calculo.jornadasNormales,
+              hrsNor: operacion === "sumar" ? 
+                parseFloat((group.hrsNor + calculo.horasNormales).toFixed(2)) : 
+                parseFloat((group.hrsNor - calculo.horasNormales).toFixed(2)),
+              jorExt: operacion === "sumar" ? 
+                group.jorExt + calculo.jornadasExtras : 
+                group.jorExt - calculo.jornadasExtras,
+              hrsExt: operacion === "sumar" ? 
+                parseFloat((group.hrsExt + calculo.horasExtras).toFixed(2)) : 
+                parseFloat((group.hrsExt - calculo.horasExtras).toFixed(2)),
             }
           : group
-      )
-    );
+      );
+    });
   };
 
   const handleItemMove = (itemId, dragTime, newGroupOrder) => {
     const startOfDay = moment(dragTime).startOf("day").valueOf();
-    setItems((prevItems) =>
-      prevItems.map((item) =>
+    setItems(prevItems =>
+      prevItems.map(item =>
         item.id === itemId
           ? {
               ...item,
@@ -130,32 +199,21 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
   };
 
   const handleItemResize = (itemId, time, edge) => {
-    setItems((prevItems) =>
-      prevItems.map((item) => {
+    setItems(prevItems =>
+      prevItems.map(item => {
         if (item.id === itemId) {
           const oldStartTime = item.start_time;
           const oldEndTime = item.end_time;
 
-          let newStartTime = item.start_time;
-          let newEndTime = item.end_time;
-
-          if (edge === "left") {
-            newStartTime = moment(time).startOf("day").valueOf();
-          } else {
-            newEndTime = moment(time).startOf("day").add(1, "days").valueOf();
-          }
-
-          // Restar las horas y jornadas anteriores
-          actualizarHorasEnGrupo(item.group, parseInt(item.title), oldStartTime, oldEndTime, "restar");
-
-          // Sumar las horas y jornadas nuevas
-          actualizarHorasEnGrupo(item.group, parseInt(item.title), newStartTime, newEndTime, "sumar");
-
-          return {
-            ...item,
-            start_time: newStartTime,
-            end_time: newEndTime,
+          const newTimes = {
+            start_time: edge === "left" ? moment(time).startOf("day").valueOf() : item.start_time,
+            end_time: edge === "right" ? moment(time).startOf("day").add(1, "days").valueOf() : item.end_time
           };
+
+          actualizarHorasEnGrupo(item.group, item.title, oldStartTime, oldEndTime, "restar");
+          actualizarHorasEnGrupo(item.group, item.title, newTimes.start_time, newTimes.end_time, "sumar");
+
+          return { ...item, ...newTimes };
         }
         return item;
       })
@@ -164,123 +222,177 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
 
   const handleDeleteItem = () => {
     if (selectedItemId !== null) {
-      const itemToDelete = items.find((item) => item.id === selectedItemId);
-      if (!itemToDelete) return;
-
-      // Calcular la duración en días del ítem
-      const duracionDias = moment(itemToDelete.end_time).diff(moment(itemToDelete.start_time), "days");
-
-      // Calcular las jornadas y horas totales a restar
-      const { jornadasNormales, horasNormales, jornadasExtras, horasExtras } = calcularJornadasYHoras(
-        parseInt(itemToDelete.title),
-        itemToDelete.start_time,
-        itemToDelete.end_time,
-        itemToDelete.group
-      );
-
-      // Restar las horas y jornadas del ítem eliminado
-      setGroups((prevGroups) =>
-        prevGroups.map((group) =>
-          group.id === itemToDelete.group
-            ? {
-                ...group,
-                jor: group.jor - jornadasNormales,
-                hrsNor: group.hrsNor - horasNormales,
-                jorExt: group.jorExt - jornadasExtras,
-                hrsExt: group.hrsExt - horasExtras,
-              }
-            : group
-        )
-      );
-
-      // Eliminar el ítem
-      setItems((prevItems) => prevItems.filter((item) => item.id !== selectedItemId));
-      setSelectedItemId(null);
+      const itemToDelete = items.find(item => item.id === selectedItemId);
+      if (itemToDelete) {
+        actualizarHorasEnGrupo(
+          itemToDelete.group,
+          itemToDelete.title,
+          itemToDelete.start_time,
+          itemToDelete.end_time,
+          "restar"
+        );
+        setItems(prevItems => prevItems.filter(item => item.id !== selectedItemId));
+        setSelectedItemId(null);
+      }
     }
   };
 
   const handleCanvasClick = (groupId, time) => {
     const startOfDay = moment(time).startOf("day").valueOf();
-    const endOfDay = startOfDay + 24 * 60 * 60 * 1000; // Duración de 1 día
+    const endOfDay = startOfDay + 86400000;
 
     const newItem = {
-      id: items.length + 1,
-      group: groupId, // Usa el ID del grupo generado aleatoriamente
-      title: itemTitle.toString(), // Usa el valor del input numérico como título
+      id: Date.now(),
+      group: groupId,
+      title: itemTitle,
       start_time: startOfDay,
-      end_time: endOfDay, // Duración de 1 día
+      end_time: endOfDay,
     };
-    setItems((prevItems) => [...prevItems, newItem]);
 
-    // Sumar las horas y jornadas del nuevo ítem
+    setItems(prevItems => [...prevItems, newItem]);
     actualizarHorasEnGrupo(groupId, itemTitle, startOfDay, endOfDay, "sumar");
   };
 
   const handleDeleteGroup = (groupId) => {
-    // Eliminar el grupo
-    setGroups((prevGroups) => prevGroups.filter((group) => group.id !== groupId));
-
-    // Eliminar los ítems asociados al grupo
-    setItems((prevItems) => prevItems.filter((item) => item.group !== groupId));
+    setGroups(prevGroups => prevGroups.filter(group => group.id !== groupId));
+    setItems(prevItems => prevItems.filter(item => item.group !== groupId));
   };
 
   const handleComboBox2Change = (e) => {
     const selectedValue = e.target.value;
     setComboBox2(selectedValue);
 
-    const selectedObject = dataForComboBox2.find((item) => item.nombre === selectedValue);
+    const selectedEmpleado = dataForComboBox2.find(item => item.nombre === selectedValue);
+    if (!selectedEmpleado) return;
 
-    if (!selectedObject) return;
-
-    // Genera un ID aleatorio de 7 dígitos para el nuevo grupo
-    const newGroupId = generateRandomId();
-
-    // Agrega un nuevo grupo con un ID único
     const newGroup = {
-      id: newGroupId, // Usamos el ID generado aleatoriamente
-      title: selectedObject.nombre,
-      hrsXJor: selectedObject.hrsxjor, // Valor inicial
-      jor: 0, // Valor inicial
-      hrsNor: 0, // Valor inicial
-      jorExt: 0, // Valor inicial
-      hrsExt: 0, // Valor inicial
-      id_empleado: selectedObject.id_empleado, // ID del empleado
+      id: generateRandomId(),
+      title: selectedEmpleado.nombre,
+      hrsXJor: parseFloat(selectedEmpleado.hrsxjor),
+      jor: 0,
+      hrsNor: 0,
+      jorExt: 0,
+      hrsExt: 0,
+      id_empleado: selectedEmpleado.id_empleado,
     };
-    setGroups((prevGroups) => [...prevGroups, newGroup]);
+
+    setGroups(prevGroups => [...prevGroups, newGroup]);
+  };
+
+  const handleOpenGroupModal = (groupId) => {
+    const group = groups.find(g => g.id === groupId && !g.isHeader);
+    if (group) {
+      setSelectedGroup(group);
+      setTempHrsXJor(group.hrsXJor.toString());
+      setOpenModal(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedGroup(null);
+  };
+
+  const handleSaveHrsXJor = () => {
+    const hrsXJorValue = parseFloat(tempHrsXJor);
+    if (!selectedGroup || isNaN(hrsXJorValue) || hrsXJorValue <= 0) return;
+
+    // Crear una copia actualizada de los grupos con el nuevo hrsXJor
+    const updatedGroups = groups.map(group => 
+      group.id === selectedGroup.id 
+        ? { ...group, hrsXJor: hrsXJorValue }
+        : group
+    );
+
+    // Recalcular todas las horas para este grupo
+    const groupItems = items.filter(item => item.group === selectedGroup.id);
+    let newCalculations = { jor: 0, hrsNor: 0, jorExt: 0, hrsExt: 0 };
+
+    groupItems.forEach(item => {
+      const calculo = calcularJornadasYHoras(
+        item.title,
+        item.start_time,
+        item.end_time,
+        updatedGroups,
+        selectedGroup.id
+      );
+      
+      newCalculations.jor += calculo.jornadasNormales;
+      newCalculations.hrsNor += parseFloat(calculo.horasNormales.toFixed(2));
+      newCalculations.jorExt += calculo.jornadasExtras;
+      newCalculations.hrsExt += parseFloat(calculo.horasExtras.toFixed(2));
+    });
+
+    // Actualizar el estado
+    setGroups(prevGroups => 
+      prevGroups.map(group => 
+        group.id === selectedGroup.id 
+          ? { 
+              ...group, 
+              hrsXJor: hrsXJorValue,
+              ...newCalculations 
+            }
+          : group
+      )
+    );
+
+    handleCloseModal();
   };
 
   const groupRenderer = ({ group }) => {
-    const truncateText = (text, maxLength) => {
-      if (text.length > maxLength) {
-        return text.substring(0, maxLength) + "..."; // Trunca y agrega puntos suspensivos
-      }
-      return text;
-    };
-
     if (group.isHeader) {
       return (
-        <div style={{ display: "flex", alignItems: "center", fontWeight: "bold", backgroundColor: "#f0f0f0", fontSize: "9px" }}>
-          <div style={{ width: "70px", padding: "0 8px" }}>Título</div>
-          <div style={{ width: "50px", padding: "0 8px" }}>HRS X JOR</div>
-          <div style={{ width: "30px", padding: "0 8px" }}>JOR</div>
-          <div style={{ width: "50px", padding: "0 8px" }}>HRS NOR</div>
-          <div style={{ width: "50px", padding: "0 8px" }}>JOR EXT</div>
-          <div style={{ width: "50px", padding: "0 8px" }}>HRS EXT</div>
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          fontWeight: "bold", 
+          backgroundColor: "#f0f0f0", 
+          fontSize: "9px" 
+        }}>
+          <div style={{ width: "80px", padding: "0 8px" }}>Empleado</div>
+          <div style={{ width: "45px", padding: "0 8px" }}>Hrs/Jor</div>
+          <div style={{ width: "40px", padding: "0 8px" }}>Jorn</div>
+          <div style={{ width: "40px", padding: "0 8px" }}>Hrs Nor</div>
+          <div style={{ width: "40px", padding: "0 8px" }}>Jorn Ext</div>
+          <div style={{ width: "40px", padding: "0 8px" }}>Hrs Ext</div>
         </div>
       );
     }
 
     return (
-      <div style={{ display: "flex", alignItems: "center", fontSize: "9px" }}>
-        <div style={{ width: "100px", padding: "0 8px" }}>{truncateText(group.title, 15)}</div>
-        <div style={{ width: "50px", padding: "0 8px" }}>{group.hrsXJor}</div>
-        <div style={{ width: "50px", padding: "0 8px" }}>{group.jor}</div>
-        <div style={{ width: "50px", padding: "0 8px" }}>{group.hrsNor}</div>
+      <div 
+        style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          fontSize: "9px",
+          cursor: "pointer",
+          backgroundColor: selectedGroup?.id === group.id ? "#e3f2fd" : "transparent"
+        }}
+        onClick={() => handleOpenGroupModal(group.id)}
+      >
+        <div style={{ width: "100px", padding: "0 8px" }}>
+          {group.title.length > 15 ? `${group.title.substring(0, 15)}...` : group.title}
+        </div>
+        <div style={{ width: "50px", padding: "0 8px" }}>{group.hrsXJor.toFixed(2)}</div>
+        <div style={{ width: "40px", padding: "0 8px" }}>{group.jor}</div>
+        <div style={{ width: "50px", padding: "0 8px" }}>{group.hrsNor.toFixed(2)}</div>
         <div style={{ width: "50px", padding: "0 8px" }}>{group.jorExt}</div>
-        <div style={{ width: "50px", padding: "0 8px" }}>{group.hrsExt}</div>
+        <div style={{ width: "50px", padding: "0 8px" }}>{group.hrsExt.toFixed(2)}</div>
         <button
-          onClick={() => handleDeleteGroup(group.id)}
-          style={{ marginLeft: "8px", fontSize: "9px", padding: "2px 4px", backgroundColor: "#ff4444", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteGroup(group.id);
+          }}
+          style={{ 
+            marginLeft: "8px", 
+            fontSize: "9px", 
+            padding: "2px 4px", 
+            backgroundColor: "#ff4444", 
+            color: "white", 
+            border: "none", 
+            borderRadius: "4px", 
+            cursor: "pointer" 
+          }}
         >
           Eliminar
         </button>
@@ -288,10 +400,10 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
     );
   };
 
-  const exportData = () => {
-    const groupsToExport = groups
-      .filter((group) => !group.isHeader) // Excluir el grupo de encabezado
-      .map((group) => ({
+  const exportData = () => ({
+    groups: groups
+      .filter(group => !group.isHeader)
+      .map(group => ({
         id: group.id,
         title: group.id_empleado.toString(),
         hrsXJor: group.hrsXJor,
@@ -299,24 +411,22 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
         hrsNor: group.hrsNor,
         jorExt: group.jorExt,
         hrsExt: group.hrsExt,
-      }));
-
-    const itemsToExport = items.map((item) => ({
+      })),
+    items: items.map(item => ({
       group: item.group,
       title: item.title,
       start_time: item.start_time,
       end_time: item.end_time,
-    }));
+    }))
+  });
 
-    return {
-      groups: groupsToExport,
-      items: itemsToExport,
-    };
+  useImperativeHandle(ref, () => ({ exportData }));
+
+  const handleNumericInputChange = (value, setter) => {
+    if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+      setter(value);
+    }
   };
-
-  useImperativeHandle(ref, () => ({
-    exportData,
-  }));
 
   return (
     <div className="p-4">
@@ -325,7 +435,7 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
         <Grid item xs={3}>
           <TextField
             select
-            label="Opción 1"
+            label="Tipo de empleado"
             value={comboBox1}
             onChange={(e) => setComboBox1(e.target.value)}
             fullWidth
@@ -339,11 +449,12 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
         <Grid item xs={3}>
           <TextField
             select
-            label="Opción 2"
+            label="Seleccionar empleado"
             value={comboBox2}
             onChange={handleComboBox2Change}
             fullWidth
             variant="outlined"
+            disabled={!comboBox1}
           >
             {dataForComboBox2.map((item) => (
               <MenuItem key={item.id_empleado} value={item.nombre}>
@@ -354,13 +465,15 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
         </Grid>
         <Grid item xs={2}>
           <TextField
-            type="number"
-            label="Título del ítem"
+            label="Jornadas por día"
             value={itemTitle}
-            onChange={(e) => setItemTitle(Number(e.target.value))}
+            onChange={(e) => handleNumericInputChange(e.target.value, setItemTitle)}
             fullWidth
             variant="outlined"
-            inputProps={{ min: 1 }} // Asegura que el valor sea mayor o igual a 1
+            inputProps={{
+              inputMode: 'decimal',
+              pattern: '[0-9]*\\.?[0-9]*'
+            }}
           />
         </Grid>
       </Grid>
@@ -368,29 +481,79 @@ const CronogramaEmpleados = React.forwardRef((props, ref) => {
       <Timeline
         groups={groups}
         items={items}
-        defaultTimeStart={defaultTimeStart} // Aquí se usa defaultTimeStart
-        defaultTimeEnd={defaultTimeEnd} // Aquí se usa defaultTimeEnd
-        timeSteps={{ day: 1, hour: 0, minute: 0, second: 0 }}
+        defaultTimeStart={defaultTimeStart}
+        defaultTimeEnd={defaultTimeEnd}
+        timeSteps={{ day: 1 }}
         lineHeight={30}
+        sidebarWidth={350}
+        canMove={true}
+        canResize="both"
         traditionalZoom={false}
-        sidebarWidth={350} // Reducido a 350 para hacer la tabla más corta
-        headerLabelFormats={{
-          day: { long: "dddd D MMMM", medium: "ddd D MMM", short: "ddd D" },
-        }}
         onItemMove={handleItemMove}
         onItemResize={handleItemResize}
         onCanvasClick={handleCanvasClick}
-        groupRenderer={groupRenderer} // Personaliza el renderizado de los grupos
+        onItemSelect={(itemId) => setSelectedItemId(itemId)}
+        onItemDeselect={() => setSelectedItemId(null)}
+        groupRenderer={groupRenderer}
         itemRenderer={({ item, getItemProps }) => (
           <div
             {...getItemProps()}
-            onClick={() => setSelectedItemId(item.id)}
-            className={`cursor-pointer text-center ${item.id === selectedItemId ? "bg-blue-100" : ""}`}
+            style={{
+              ...getItemProps().style,
+              background: item.id === selectedItemId ? "#e3f2fd" : "#64b5f6",
+              borderRadius: "4px",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              fontWeight: "bold",
+              color: "#fff",
+            }}
           >
-            {item.title} {/* Muestra el título del ítem sin edición */}
+            {item.title}
           </div>
         )}
       />
+
+      <Modal
+        open={openModal}
+        onClose={handleCloseModal}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={modalStyle}>
+          <Typography id="modal-modal-title" variant="h6" component="h2" mb={2}>
+            Editar Horas por Jornada
+          </Typography>
+          <Typography id="modal-modal-description" sx={{ mb: 2 }}>
+            Empleado: {selectedGroup?.title}
+          </Typography>
+          
+          <TextField
+            label="Horas por Jornada"
+            value={tempHrsXJor}
+            onChange={(e) => handleNumericInputChange(e.target.value, setTempHrsXJor)}
+            fullWidth
+            sx={{ mb: 3 }}
+            inputProps={{
+              inputMode: 'decimal',
+              pattern: '[0-9]*\\.?[0-9]*'
+            }}
+          />
+          
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Button variant="outlined" onClick={handleCloseModal}>
+              Cancelar
+            </Button>
+            <Button 
+              variant="contained" 
+              onClick={handleSaveHrsXJor}
+              disabled={!tempHrsXJor || parseFloat(tempHrsXJor) <= 0}
+            >
+              Guardar
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
     </div>
   );
 });

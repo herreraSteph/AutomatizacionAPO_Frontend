@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from "react-router-dom";
 import axios from 'axios'; // Importando axios
 
 // Importar useTheme desde MUI
@@ -36,6 +37,7 @@ const AuthLogin = ({ ...others }) => {
   const matchDownSM = useMediaQuery(theme.breakpoints.down('md'));
   const [checked, setChecked] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -56,10 +58,9 @@ const AuthLogin = ({ ...others }) => {
 
       console.log('Respuesta de la API:', response.data);
 
-      localStorage.setItem('message', response.data.mensaje);
-      localStorage.setItem('rol', response.data.rol);
-      localStorage.setItem('tipo error:', response.data.tipoError);
-      window.location.href = "http://localhost:3000/Serman/dashboard/default";
+      sessionStorage.setItem('message', response.data.mensaje);
+      sessionStorage.setItem('rol', response.data.rol);
+      navigate('/');
     } catch (error) {
       if (error.response) {
         setErrors({ submit: error.response.data.message || 'Error al iniciar sesión' });

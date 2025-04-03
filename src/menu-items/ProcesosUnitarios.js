@@ -17,13 +17,13 @@ const icons = {
 };
 
 const ProcesosUnitarios = {
-  id: 'ProcesosUnitarios',
-  title: 'Procesos Unitarios',
+  id: 'PreciosUnitarios',
+  title: 'Precios Unitarios',
   type: 'group',
   children: [
     {
-      id: 'Procesos-Unitarios',
-      title: 'Proceso Unitarios',
+      id: 'Precios-Unitarios',
+      title: 'Precios Unitarios',
       type: 'item',
       url: '/proyectos/PreciosUnitarios',
       icon: icons.ListAltIcon, // Corregido aquí

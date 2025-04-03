@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // Añadir useEffect
+import React, { useState, useEffect } from "react";
 import {
   Select,
   MenuItem,
@@ -10,119 +10,245 @@ import {
   TableRow,
   Paper,
   Button,
-  CircularProgress,
-  Snackbar,
-  Alert, // Importar Alert
-  AlertTitle, // Importar AlertTitle
-  TablePagination,
+  Alert,
+  AlertTitle,
   TextField,
+  IconButton,
+  Typography,
+  Box,
+  TablePagination,
+  Skeleton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
-import { agregarMaterial } from "../../api/Construccion";
-import { useNavigate } from "react-router-dom";
+import AddIcon from '@mui/icons-material/Add';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import { useNavigate, useLocation } from "react-router-dom";
+import { 
+  ObtenerFamilias, 
+  ObtenerSubfamiliasPorFamilia, 
+  ObtenerCategoriasPorSubfamilia, 
+  ObtenerMaterialesPaginados,
+  ObtenerNumeroMateriales
+} from "../../api/Construccion";
 
 const DescripcionMaterial = () => {
-  const [selectedOption1, setSelectedOption1] = useState("");
-  const [selectedOption2, setSelectedOption2] = useState("");
-  const [selectedOption3, setSelectedOption3] = useState("");
-  const [tableData, setTableData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  // Estados para los selectores y búsqueda
+  const [familias, setFamilias] = useState([]);
+  const [subfamilias, setSubfamilias] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [selectedFamilia, setSelectedFamilia] = useState("");
+  const [selectedSubfamilia, setSelectedSubfamilia] = useState("");
+  const [selectedCategoria, setSelectedCategoria] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Estados para los materiales
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedMaterials, setSelectedMaterials] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+  
+  // Estados para UI
+  const [isOnline, setIsOnline] = useState(true);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [totalMateriales, setTotalMateriales] = useState(0);
+  const [loadingFamilias, setLoadingFamilias] = useState(true);
+  const [loadingSubfamilias, setLoadingSubfamilias] = useState(false);
+  const [loadingCategorias, setLoadingCategorias] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+
+  // Estados para paginación
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
+
+  const location = useLocation();
+  const id_proyecto = location.state?.id_proyecto;
+
   const navigate = useNavigate();
 
-  // Verificar la conexión a Internet
+  // Efecto para verificar conexión
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnlineStatusChange = () => {
+      setIsOnline(navigator.onLine);
+    };
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener('online', handleOnlineStatusChange);
+    window.addEventListener('offline', handleOnlineStatusChange);
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener('online', handleOnlineStatusChange);
+      window.removeEventListener('offline', handleOnlineStatusChange);
     };
   }, []);
 
-  const options1 = ["Opción 1", "Opción 2"];
-  const options2 = {
-    "Opción 1": ["Subopción 1.1", "Subopción 1.2"],
-    "Opción 2": ["Subopción 2.1", "Subopción 2.2"],
-  };
-  const options3 = {
-    "Subopción 1.1": ["Material 1.1.1", "Material 1.1.2"],
-    "Subopción 1.2": ["Material 1.2.1", "Material 1.2.2"],
-    "Subopción 2.1": ["Material 2.1.1", "Material 2.1.2"],
-    "Subopción 2.2": ["Material 2.2.1", "Material 2.2.2"],
-  };
-
-  const handleOption1Change = (event) => {
-    setSelectedOption1(event.target.value);
-    setSelectedOption2("");
-    setSelectedOption3("");
-  };
-
-  const handleOption2Change = (event) => {
-    setSelectedOption2(event.target.value);
-    setSelectedOption3("");
-  };
-
-  const handleOption3Change = (event) => {
-    setSelectedOption3(event.target.value);
-  };
-
-  const handleAddToTable = () => {
-    if (selectedOption3) {
-      const newRow = {
-        id: tableData.length + 1,
-        descripcion: selectedOption3,
-        cantidad: Math.floor(Math.random() * 10) + 1,
-        unidad: "kg",
-      };
-      setTableData([...tableData, newRow]);
-    }
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      const materiales = tableData.map((row) => ({
-        descripcion: row.descripcion,
-        cantidad: row.cantidad,
-        unidad: row.unidad,
-      }));
-
-      const response = await agregarMaterial(materiales);
-
-      if (response.tipoError === 0) {
-        setSnackbarMessage("Los materiales se guardaron correctamente.");
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
-      } else {
-        setSnackbarMessage("Hubo un error al guardar los materiales.");
-        setSnackbarSeverity("error");
-        setSnackbarOpen(true);
+  // Obtener familias al cargar el componente
+  useEffect(() => {
+    const fetchFamilias = async () => {
+      try {
+        setLoadingFamilias(true);
+        const response = await ObtenerFamilias();
+        setFamilias(response);
+        setLoadingFamilias(false);
+      } catch (error) {
+        console.error("Error al obtener familias:", error);
+        setLoadingFamilias(false);
       }
-    } catch (error) {
-      setSnackbarMessage("Hubo un error al guardar los materiales.");
-      setSnackbarSeverity("error");
-      setSnackbarOpen(true);
-    } finally {
-      setLoading(false);
+    };
+
+    fetchFamilias();
+  }, []);
+
+  // Obtener subfamilias cuando se selecciona una familia
+  useEffect(() => {
+    const fetchSubfamilias = async () => {
+      if (selectedFamilia) {
+        try {
+          setLoadingSubfamilias(true);
+          const response = await ObtenerSubfamiliasPorFamilia(selectedFamilia);
+          setSubfamilias(response);
+          setSelectedSubfamilia("");
+          setSelectedCategoria("");
+          setLoadingSubfamilias(false);
+        } catch (error) {
+          console.error("Error al obtener subfamilias:", error);
+          setLoadingSubfamilias(false);
+        }
+      }
+    };
+
+    fetchSubfamilias();
+  }, [selectedFamilia]);
+
+  // Obtener categorias cuando se selecciona una subfamilia
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      if (selectedSubfamilia) {
+        try {
+          setLoadingCategorias(true);
+          const response = await ObtenerCategoriasPorSubfamilia(selectedSubfamilia);
+          setCategorias(response);
+          setSelectedCategoria("");
+          setLoadingCategorias(false);
+        } catch (error) {
+          console.error("Error al obtener categorías:", error);
+          setLoadingCategorias(false);
+        }
+      }
+    };
+
+    fetchCategorias();
+  }, [selectedSubfamilia]);
+
+  // Efecto principal para obtener materiales
+  useEffect(() => {
+    const fetchMateriales = async () => {
+      if (selectedCategoria) {
+        try {
+          setSearchLoading(true);
+          
+          const params = {
+            categoria_id: selectedCategoria,
+            busqueda: searchTerm,
+            numeroPagina: page + 1,
+            numeroRegistros: rowsPerPage
+          };
+          
+          const totalResponse = await ObtenerNumeroMateriales({
+            categoria_id: selectedCategoria,
+            busqueda: searchTerm
+          });
+          setTotalMateriales(totalResponse.total_filas || 0);
+          
+          const response = await ObtenerMaterialesPaginados(params);
+          setSuggestions(response || []);
+          setSearchLoading(false);
+          setShowResults(true);
+        } catch (error) {
+          console.error("Error al obtener materiales:", error);
+          setSearchLoading(false);
+        }
+      }
+    };
+
+    fetchMateriales();
+  }, [selectedCategoria, page, rowsPerPage, searchTerm]);
+
+  // Función para buscar materiales
+  const handleSearch = async () => {
+    if (selectedCategoria) {
+      try {
+        setSearchLoading(true);
+        setSearchTerm(searchInput);
+        setPage(0);
+      } catch (error) {
+        console.error("Error al buscar materiales:", error);
+        setSearchLoading(false);
+      }
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
+  // Función para limpiar búsqueda
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchTerm("");
+    setPage(0);
   };
 
+  // Función para renderizar skeletons durante la carga
+  const renderSkeletons = () => {
+    return Array(rowsPerPage).fill(0).map((_, index) => (
+      <TableRow key={`skeleton-${index}`}>
+        <TableCell><Skeleton variant="text" /></TableCell>
+        <TableCell><Skeleton variant="text" /></TableCell>
+        <TableCell><Skeleton variant="text" /></TableCell>
+        <TableCell><Skeleton variant="text" /></TableCell>
+        <TableCell><Skeleton variant="circular" width={40} height={40} /></TableCell>
+      </TableRow>
+    ));
+  };
+
+  // Handlers para los selectores
+  const handleFamiliaChange = (event) => {
+    setSelectedFamilia(event.target.value);
+    setSearchInput("");
+    setSearchTerm("");
+    setSuggestions([]);
+    setShowResults(false);
+    setPage(0);
+  };
+
+  const handleSubfamiliaChange = (event) => {
+    setSelectedSubfamilia(event.target.value);
+    setSearchInput("");
+    setSearchTerm("");
+    setSuggestions([]);
+    setShowResults(false);
+    setPage(0);
+  };
+
+  const handleCategoriaChange = (event) => {
+    setSelectedCategoria(event.target.value);
+    setSearchInput("");
+    setSearchTerm("");
+    setPage(0);
+  };
+
+  const handleSearchInputChange = (e) => {
+    setSearchInput(e.target.value);
+  };
+
+  const handleAddMaterial = (material) => {
+    if (!selectedMaterials.some(m => m.id === material.id)) {
+      setSelectedMaterials(prev => [...prev, material]);
+    } else {
+      setSelectedMaterials(prev => prev.filter(m => m.id !== material.id));
+    }
+  };
+
+  // Funciones para paginación
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -132,189 +258,307 @@ const DescripcionMaterial = () => {
     setPage(0);
   };
 
-  const handleCantidadChange = (event, id) => {
-    const newCantidad = event.target.value;
-    const updatedTableData = tableData.map((row) =>
-      row.id === id ? { ...row, cantidad: newCantidad } : row
-    );
-    setTableData(updatedTableData);
+  // Función para verificar si un material está seleccionado
+  const isMaterialSelected = (id) => {
+    return selectedMaterials.some(m => m.id === id);
   };
 
-  const handleUnidadChange = (event, id) => {
-    const newUnidad = event.target.value;
-    const updatedTableData = tableData.map((row) =>
-      row.id === id ? { ...row, unidad: newUnidad } : row
-    );
-    setTableData(updatedTableData);
+  // Función para abrir el modal
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+
+  // Función para cerrar el modal
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
+  // Función para redireccionar a listaMaterial con los IDs
+  const handleNavigateToList = () => {
+    const materialIds = selectedMaterials.map(material => material.id);
+    navigate('/proyectos/listaMaterial', { 
+      state: { materialIds, id_proyecto } 
+    });
   };
 
   return (
     <div style={{ padding: "20px" }}>
-      {/* Alerta de conexión a Internet */}
       {!isOnline && (
         <Alert severity="warning" sx={{ marginBottom: 2 }}>
           <AlertTitle>Advertencia</AlertTitle>
-          Parece que no estás conectado a Internet.
+          No estás conectado a Internet
         </Alert>
       )}
 
       <Paper sx={{ padding: 2, borderRadius: 2 }}>
-        {/* Selectores */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "30px", marginBottom: "30px" }}>
+        <Typography variant="h7" component="h1" sx={{ color: 'black', fontWeight: 'bold', marginBottom: 4 }}>
+          Materiales
+        </Typography>
+
+        <div style={{ 
+          display: "grid", 
+          gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+          gap: "30px", 
+          marginBottom: "30px"
+        }}>
           <Select
-            value={selectedOption1}
-            onChange={handleOption1Change}
+            value={selectedFamilia}
+            onChange={handleFamiliaChange}
             displayEmpty
             variant="outlined"
-            sx={{ width: "350px", height: "50px" }}
+            sx={{ height: "50px" }}
+            disabled={loadingFamilias}
           >
-            <MenuItem value="" disabled>Seleccionar</MenuItem>
-            {options1.map((option, index) => (
-              <MenuItem key={index} value={option}>{option}</MenuItem>
-            ))}
+            <MenuItem value="" disabled>Familias</MenuItem>
+            {loadingFamilias ? (
+              <MenuItem disabled>Cargando...</MenuItem>
+            ) : (
+              familias.map((familia) => (
+                <MenuItem key={familia.id} value={familia.id}>
+                  {familia.nombre}
+                </MenuItem>
+              ))
+            )}
           </Select>
 
           <Select
-            value={selectedOption2}
-            onChange={handleOption2Change}
+            value={selectedSubfamilia}
+            onChange={handleSubfamiliaChange}
             displayEmpty
             variant="outlined"
-            sx={{ width: "350px", height: "50px" }}
-            disabled={!selectedOption1}
+            sx={{ height: "50px" }}
+            disabled={!selectedFamilia || loadingSubfamilias}
           >
-            <MenuItem value="" disabled>Seleccionar</MenuItem>
-            {selectedOption1 && options2[selectedOption1].map((option, index) => (
-              <MenuItem key={index} value={option}>{option}</MenuItem>
-            ))}
+            <MenuItem value="" disabled>SubFamilias</MenuItem>
+            {loadingSubfamilias ? (
+              <MenuItem disabled>Cargando...</MenuItem>
+            ) : (
+              subfamilias.map((subfamilia) => (
+                <MenuItem key={subfamilia.id} value={subfamilia.id}>
+                  {subfamilia.nombre}
+                </MenuItem>
+              ))
+            )}
           </Select>
 
           <Select
-            value={selectedOption3}
-            onChange={handleOption3Change}
+            value={selectedCategoria}
+            onChange={handleCategoriaChange}
             displayEmpty
             variant="outlined"
-            sx={{ width: "350px", height: "50px" }}
-            disabled={!selectedOption2}
+            sx={{ height: "50px" }}
+            disabled={!selectedSubfamilia || loadingCategorias}
           >
-            <MenuItem value="" disabled>Seleccionar</MenuItem>
-            {selectedOption2 && options3[selectedOption2].map((option, index) => (
-              <MenuItem key={index} value={option}>{option}</MenuItem>
-            ))}
+            <MenuItem value="" disabled>Categorias</MenuItem>
+            {loadingCategorias ? (
+              <MenuItem disabled>Cargando...</MenuItem>
+            ) : (
+              categorias.map((categoria) => (
+                <MenuItem key={categoria.id} value={categoria.id}>
+                  {categoria.nombre}
+                </MenuItem>
+              ))
+            )}
           </Select>
+
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 1,
+            gridColumn: '1 / -1',
+            maxWidth: '500px',
+            margin: '0 auto'
+          }}>
+            <TextField
+              fullWidth
+              value={searchInput}
+              onChange={handleSearchInputChange}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              label="Buscar material específico"
+              variant="outlined"
+              sx={{ height: "50px" }}
+              InputProps={{
+                endAdornment: searchInput && (
+                  <IconButton
+                    onClick={handleClearSearch}
+                    size="small"
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                ),
+              }}
+            />
+            
+            {searchLoading ? (
+              <Skeleton variant="rectangular" width={100} height={50} sx={{ borderRadius: 1 }} />
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handleSearch}
+                disabled={!selectedCategoria}
+                sx={{
+                  height: '50px',
+                  minWidth: '100px',
+                  backgroundColor: '#060336',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#002244'
+                  },
+                  fontWeight: 'bold',
+                  textTransform: 'none',
+                  fontSize: '16px'
+                }}
+              >
+                Buscar
+              </Button>
+            )}
+          </Box>
         </div>
 
-        {/* Botón para agregar a la tabla */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "30px" }}>
+        {showResults && (
+          <Paper sx={{ mb: 3 }}>
+            <TableContainer sx={{ maxHeight: 400 }}>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>COD</TableCell>
+                    <TableCell>DESCRIPCIÓN CORTA</TableCell>
+                    <TableCell>DESCRIPCIÓN LARGA</TableCell>
+                    <TableCell>UNIDAD</TableCell>
+                    <TableCell>ACCIÓN</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {searchLoading ? (
+                    renderSkeletons()
+                  ) : suggestions.length > 0 ? (
+                    suggestions.map((material) => (
+                      <TableRow key={material.id} hover>
+                        <TableCell>{material.codigo}</TableCell>
+                        <TableCell>{material.descripcion_corta}</TableCell>
+                        <TableCell>{material.descripcion_larga}</TableCell>
+                        <TableCell>{material.unidad}</TableCell>
+                        <TableCell>
+                          <IconButton 
+                            color={isMaterialSelected(material.id) ? "success" : "primary"}
+                            onClick={() => handleAddMaterial(material)}
+                          >
+                            {isMaterialSelected(material.id) ? <CheckIcon /> : <AddIcon />}
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        No se encontraron resultados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25]}
+              component="div"
+              count={totalMateriales}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              labelRowsPerPage="Filas por página:"
+              labelDisplayedRows={({ from, to, count }) => 
+                `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+              }
+            />
+          </Paper>
+        )}
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            {selectedMaterials.length > 0 ? (
+              <Button 
+                onClick={handleOpenModal}
+                sx={{ textTransform: 'none' }}
+              >
+                Materiales seleccionados: {selectedMaterials.length}
+              </Button>
+            ) : (
+              <Skeleton variant="text" width={150} />
+            )}
+          </div>
           <Button
             variant="contained"
-            onClick={handleAddToTable}
-            disabled={!selectedOption3}
+            onClick={handleNavigateToList}
+            disabled={selectedMaterials.length === 0}
             sx={{
               backgroundColor: "#060336",
               color: "white",
               padding: "8px 20px",
-              fontSize: "0.9rem",
               borderRadius: "20px",
             }}
           >
-            Agregar a la Tabla
+            Siguiente
           </Button>
         </div>
 
-        {/* Tabla */}
-        <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
-          <Table>
-            <TableHead sx={{ backgroundColor: "#060336" }}>
-              <TableRow>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Id</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Descripción del Material</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Cantidad</TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>Unidad</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tableData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => (
-                <TableRow key={row.id} sx={{ "&:nth-of-type(odd)": { backgroundColor: "#f9f9f9" } }}>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>{row.descripcion}</TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      value={row.cantidad}
-                      onChange={(event) => handleCantidadChange(event, row.id)}
-                      variant="outlined"
-                      size="small"
-                      sx={{ width: "100px" }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={row.unidad}
-                      onChange={(event) => handleUnidadChange(event, row.id)}
-                      variant="outlined"
-                      size="small"
-                      sx={{ width: "100px" }}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <TablePagination
-            rowsPerPageOptions={[10, 50, 60]}
-            component="div"
-            count={tableData.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </TableContainer>
-
-        {/* Botón Guardar y Descargar */}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "40px" }}>
-          <Button
-            variant="contained"
-            onClick={handleSave}
-            disabled={loading || tableData.length === 0}
-            sx={{
-              backgroundColor: "#060336",
-              color: "white",
-              padding: "8px 20px",
-              fontSize: "0.9rem",
-              borderRadius: "20px",
-              minWidth: "120px",
-            }}
-          >
-            {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Guardar"}
-          </Button>
-
-          <Button
-            variant="outlined"
-            sx={{
-              borderColor: "#060336",
-              color: "#060336",
-              padding: "8px 20px",
-              fontSize: "0.9rem",
-              borderRadius: "20px",
-            }}
-          >
-            Descargar
-          </Button>
-        </div>
+        {/* Modal para mostrar materiales seleccionados */}
+        <Dialog
+          open={openModal}
+          onClose={handleCloseModal}
+          maxWidth="md"
+          fullWidth
+        >
+          <DialogTitle>Materiales Seleccionados</DialogTitle>
+          <DialogContent>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>COD</TableCell>
+                    <TableCell>DESCRIPCIÓN CORTA</TableCell>
+                    <TableCell>DESCRIPCIÓN LARGA</TableCell>
+                    <TableCell>UNIDAD</TableCell>
+                    <TableCell>ACCIÓN</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {selectedMaterials.length > 0 ? (
+                    selectedMaterials.map((material) => (
+                      <TableRow key={material.id}>
+                        <TableCell>{material.codigo}</TableCell>
+                        <TableCell>{material.descripcion_corta}</TableCell>
+                        <TableCell>{material.descripcion_larga}</TableCell>
+                        <TableCell>{material.unidad}</TableCell>
+                        <TableCell>
+                          <IconButton 
+                            color="error"
+                            onClick={() => handleAddMaterial(material)}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center">
+                        No hay materiales seleccionados
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseModal} color="primary">
+              Cerrar
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Paper>
-
-      {/* Snackbar para notificaciones */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: "100%" }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </div>
   );
 };

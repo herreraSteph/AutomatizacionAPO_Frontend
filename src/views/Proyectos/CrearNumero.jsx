@@ -9,19 +9,22 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
-import Alert from "@mui/material/Alert"; // Importar Alert
-import AlertTitle from "@mui/material/AlertTitle"; // Importar AlertTitle
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import MainCard from "ui-component/cards/MainCard";
+import Skeleton from "@mui/material/Skeleton";
 import data from "../../data/clientes";
-import { obtenerUltimoNumero } from "../../api/Construccion";
+import { obtenerUltimoNumero, crearNumero } from "../../api/Construccion";
 
 const CrearNumero = () => {
   const navigate = useNavigate();
-  const [numero, setNumero] = useState(""); // Inicialmente vacío
+  const [numero, setNumero] = useState("");
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     numero: "",
+    nombreProyecto: "", // Nuevo campo agregado
     cliente: "",
     fechaInicio: "",
     representante: "",
@@ -29,7 +32,7 @@ const CrearNumero = () => {
   });
   const [representantes, setRepresentantes] = useState([]);
   const [errors, setErrors] = useState({});
-  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para controlar la conexión a Internet
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -48,14 +51,16 @@ const CrearNumero = () => {
     const fetchUltimoNumero = async () => {
       try {
         const ultimoNumero = await obtenerUltimoNumero();
-        setNumero(ultimoNumero.nombre); // Actualiza el estado con el último número obtenido
+        setNumero(ultimoNumero.nombre);
       } catch (error) {
         console.error("Error al obtener el último número:", error);
+      } finally {
+        setInitialLoading(false);
       }
     };
 
     fetchUltimoNumero();
-  }, []); // Se ejecuta solo una vez al montar el componente
+  }, []);
 
   useEffect(() => {
     const fechaCreacion = new Date().toISOString().split("T")[0];
@@ -98,6 +103,9 @@ const CrearNumero = () => {
   const validateForm = () => {
     const newErrors = {};
 
+    if (!formData.nombreProyecto) {
+      newErrors.nombreProyecto = "El nombre del proyecto es requerido";
+    }
     if (!formData.cliente) {
       newErrors.cliente = "El cliente es requerido";
     }
@@ -121,52 +129,65 @@ const CrearNumero = () => {
     if (!validateForm()) {
       return;
     }
-
     setLoading(true);
-    const idUsuario = localStorage.getItem("message");
-
-    if (!idUsuario) {
-      alert("No se encontró el ID de usuario en el localStorage. Por favor, inicia sesión nuevamente.");
-      setLoading(false);
-      return;
-    }
     const payload = {
       nombre: formData.numero,
+      nombre_proyecto: formData.nombreProyecto, // Incluir el nombre del proyecto
       fecha_creacion: getFechaIsoCdmx(),
       cliente: formData.cliente,
       fecha_inicio: formData.fechaInicio,
       representante: formData.representante,
       prioridad: formData.prioridad,
-      id_usuario: idUsuario,
+      id_usuario: "",
     };
 
-    try {
-      const response = await fetch("https://automatizacionapo-backend.onrender.com/api/Construccion/Crear", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) throw new Error("Error al enviar los datos a la API");
-      
-      const result = await response.json();
-      console.log("Respuesta de la API:", result);
-
-      const num = parseInt(numero.split("-")[1]) + 1;
-      setNumero(`SM25-${String(num).padStart(3, "0")}`);
-      setDialogOpen(true);
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Hubo un error al enviar los datos. Por favor, inténtalo de nuevo.");
-    } finally {
+    const response = await crearNumero(payload);
+    if(response.tipoError !== 0){
+      alert("Ocurrio un error al guardar numero, intentalo mas tarde");
       setLoading(false);
+      return;
     }
+    setDialogOpen(true);
+    setLoading(false);
   };
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
     navigate("/");
   };
+
+  if (initialLoading) {
+    return (
+      <MainCard title="Solicitud de Número de Proyecto">
+        <Grid container spacing={4} justifyContent="center" alignItems="center">
+          <Grid item xs={12} sm={5}>
+            <Skeleton variant="rectangular" width="100%" height={56} />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Skeleton variant="rectangular" width="100%" height={56} />
+          </Grid>
+          <Grid item xs={12} sm={5}>
+            <Skeleton variant="rectangular" width="100%" height={56} />
+          </Grid>
+          <Grid item xs={12} sm={5}>
+            <Skeleton variant="rectangular" width="100%" height={56} />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Skeleton variant="rectangular" width="100%" height={56} />
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Skeleton variant="rectangular" width="100%" height={56} />
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <Skeleton variant="rectangular" width="100%" height={56} />
+          </Grid>
+          <Grid item xs={12} sm={2}>
+            <Skeleton variant="rectangular" width="100%" height={36} sx={{ borderRadius: "50px" }} />
+          </Grid>
+        </Grid>
+      </MainCard>
+    );
+  }
 
   return (
     <MainCard title="Solicitud de Número de Proyecto">
@@ -182,6 +203,18 @@ const CrearNumero = () => {
         </Grid>
         <Grid item xs={12} sm={4}>
           <TextField fullWidth label="Fecha de creación" type="date" variant="outlined" InputLabelProps={{ shrink: true }} InputProps={{ readOnly: true }} value={formData.fechaCreacion} />
+        </Grid>
+        <Grid item xs={12} sm={5}>
+          <TextField
+            fullWidth
+            label="Nombre del Proyecto"
+            variant="outlined"
+            name="nombreProyecto"
+            value={formData.nombreProyecto}
+            onChange={handleChange}
+            error={!!errors.nombreProyecto}
+            helperText={errors.nombreProyecto}
+          />
         </Grid>
         <Grid item xs={12} sm={5}>
           <TextField 
@@ -246,9 +279,9 @@ const CrearNumero = () => {
             sx={{
               '& .MuiOutlinedInput-input': {
                 color: formData.prioridad === "alta" ? "red" : 
-                formData.prioridad === "media" ? "#FFA500" : // Naranja fuerte
+                formData.prioridad === "media" ? "#FFA500" :
                 formData.prioridad === "baja" ? "green" : "inherit",
-                fontWeight: "normal", // Asegura que no haya negrita
+                fontWeight: "normal",
               }
             }}
           >

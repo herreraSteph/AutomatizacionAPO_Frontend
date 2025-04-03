@@ -3,6 +3,7 @@ import { lazy } from 'react';
 // project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
+import RedirectComponent from "./RedirectComponent";
 import { element } from 'prop-types';
 
 // dashboard routing
@@ -18,11 +19,13 @@ const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 const DescripcionMaterial = Loadable(lazy(() => import('views/Proyectos/DescripcionMaterial')));
 const ManoObra = Loadable(lazy(() => import('views/Proyectos/AsignacionManoObra')));
 const MaterialesGantt = Loadable(lazy(() => import('views/Proyectos/MaterialesGantt')));
-import RedirectComponent from "./RedirectComponent";
 const CPC = Loadable(lazy(() => import('views/Proyectos/CPC')));
 const TablaCompleta = Loadable(lazy(() => import('views/Proyectos/TablaCompleta')));
 const PreciosUnitarios = Loadable(lazy(() => import('views/Proyectos/PreciosUnitarios')));
 const DescargaCPC = Loadable(lazy(() => import('views/Proyectos/DescargaCPC')));
+const Editar = Loadable(lazy(() => import('views/Proyectos/Editar')));
+const ListaMaterial = Loadable(lazy(() => import('views/Proyectos/ListaMaterial')));
+
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -102,7 +105,7 @@ const MainRoutes = {
           element: <CPC />
         },
         {
-          path: 'TablaCompleta',
+          path: 'Pendientes',
           element: <TablaCompleta />
         },
         {
@@ -110,9 +113,18 @@ const MainRoutes = {
           element: <PreciosUnitarios />
         },
         {
-          path: 'DescargaCPC',
+          path: 'Descargar',
           element: <DescargaCPC />
         },
+        {
+          path: 'Editar',
+          element: <Editar />
+        },
+        {
+           path: 'ListaMaterial',
+           element: <ListaMaterial />
+        }
+       
       ]
     }
   ]

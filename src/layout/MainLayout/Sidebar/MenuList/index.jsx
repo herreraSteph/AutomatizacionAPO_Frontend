@@ -1,14 +1,11 @@
-// material-ui
 import { Typography } from '@mui/material';
-
-// project imports
+import useMenuItems from '../../../../menu-items/useMenuItems'; // Ajusta la ruta según tu estructura
 import NavGroup from './NavGroup';
-import menuItem from 'menu-items';
-
-// ==============================|| SIDEBAR MENU LIST ||============================== //
 
 const MenuList = () => {
-  const navItems = menuItem.items.map((item) => {
+  const { items } = useMenuItems(); // Ahora es reactivo
+
+  const navItems = items.map((item) => {
     switch (item.type) {
       case 'group':
         return <NavGroup key={item.id} item={item} />;

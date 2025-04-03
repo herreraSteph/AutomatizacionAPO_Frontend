@@ -1,36 +1,26 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom"; // Importar useNavigate para la redirección
+import { useNavigate, useLocation} from "react-router-dom";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import gantt from "dhtmlx-gantt";
 import MainCard from "ui-component/cards/MainCard";
-import { Button, CircularProgress, Modal, Box, Typography, Alert, AlertTitle } from "@mui/material"; // Importar componentes de Material-UI
-import "../../assets/css/cronograma.css"; // Archivo CSS para colores
-import { agregarActividades } from "../../api/Construccion"; // Importar la función de la API
+import { Button, CircularProgress, Modal, Box, Typography, Alert, AlertTitle } from "@mui/material";
+import "../../assets/css/cronograma.css";
+import { agregarActividades } from "../../api/Construccion";
 
 const Cronograma = () => {
   const ganttContainer = useRef(null);
-  const navigate = useNavigate(); // Inicializar useNavigate
-  const [loading, setLoading] = useState(false); // Estado para controlar el spinner
-  const [modalOpen, setModalOpen] = useState(false); // Estado para controlar el modal
-  const [modalMessage, setModalMessage] = useState(""); // Mensaje del modal
-  const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
-
-  // Verificar la conexión a Internet
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [modalTitle, setModalTitle] = useState("Error");
+  const [isDragging, setIsDragging] = useState(false);
+  const location = useLocation();
+  const { id_proyecto, Status } = location.state || {};
 
   useEffect(() => {
-    // Configurar idioma español
+    // Configuración regional
     gantt.locale = {
       date: {
         month_full: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
@@ -59,18 +49,27 @@ const Cronograma = () => {
       }
     };
 
-    // Configurar columnas con el botón de agregar tarea
+    // Configuración optimizada para parent-child
+    gantt.config.auto_types = true;
+    gantt.config.order_branch = true;
+    gantt.config.order_branch_free = false;
+    gantt.config.drag_move = true;
+    gantt.config.drag_resize = true;
+    gantt.config.drag_progress = true;
+    gantt.config.preserve_scroll = true;
+    gantt.config.show_links = true;
+
+    // Configuración de columnas
     gantt.config.columns = [
       { name: "text", label: "Nom. Act.", width: 125, tree: true },
       { name: "start_date", label: "Inicio", align: "center", width: 100 },
-      { name: "end_date", label: "Termino", align: "center", width: 100 },
       { name: "duration", label: "Días", align: "center", width: 50 },
       { name: "cantidad", label: "Cant", align: "center", width: 50 },
       { name: "unidad", label: "Unidad", align: "center", width: 50 },
       { name: "add", label: "", width: 44 }
     ];
 
-    // Configurar el formulario de la tarea
+    // Configuración del lightbox
     gantt.config.lightbox.sections = [
       { name: "description", height: 70, map_to: "text", type: "textarea", focus: true },
       { name: "time", height: 72, map_to: "auto", type: "duration" },
@@ -86,64 +85,204 @@ const Cronograma = () => {
       }
     ];
 
-    // Calcular la fecha de fin automáticamente si es necesario
-    gantt.attachEvent("onTaskUpdated", function (id, task) {
+    // Función optimizada para restricciones
+    const applyParentConstraints = (task) => {
+      if (!task.parent) return false;
+      
+      const parent = gantt.getTask(task.parent);
+      if (!parent) return false;
+
+      const parentStart = new Date(parent.start_date);
+      const parentEnd = new Date(parent.start_date);
+      parentEnd.setDate(parentStart.getDate() + parent.duration);
+      
+      const taskStart = new Date(task.start_date);
+      const taskEnd = new Date(taskStart);
+      taskEnd.setDate(taskStart.getDate() + task.duration);
+      
+      let changed = false;
+      
+      // Restricción de fecha inicio
+      if (taskStart < parentStart) {
+        task.start_date = new Date(parentStart);
+        changed = true;
+      }
+      
+      // Restricción de fecha fin
+      const maxEnd = new Date(Math.min(taskEnd.getTime(), parentEnd.getTime()));
+      const maxDuration = Math.floor((maxEnd - taskStart) / (1000 * 60 * 60 * 24));
+      
+      if (task.duration !== maxDuration) {
+        task.duration = maxDuration > 0 ? maxDuration : 1;
+        changed = true;
+      }
+      
+      return changed;
+    };
+
+    // Manejo optimizado de eventos de arrastre
+    gantt.attachEvent("onTaskDragStart", () => {
+      setIsDragging(true);
+      return true;
+    });
+
+    gantt.attachEvent("onTaskDragEnd", () => {
+      setIsDragging(false);
+      return true;
+    });
+
+    gantt.attachEvent("onTaskDrag", (id, mode, task) => {
+      if (applyParentConstraints(task)) {
+        gantt.updateTask(id);
+        return false;
+      }
+      return true;
+    });
+
+    // Manejo de redimensionamiento
+    gantt.attachEvent("onBeforeTaskChange", (id, mode, task) => {
+      if (mode === "resize" && applyParentConstraints(task)) {
+        return false;
+      }
+      return true;
+    });
+
+    // Actualización optimizada de tareas
+    gantt.attachEvent("onAfterTaskUpdate", (id) => {
+      if (isDragging) return true;
+      
+      const task = gantt.getTask(id);
+      
+      // Actualizar tareas hijas si es padre
+      if (gantt.hasChild(id)) {
+        const children = gantt.getChildren(id);
+        children.forEach(childId => {
+          const child = gantt.getTask(childId);
+          if (applyParentConstraints(child)) {
+            gantt.updateTask(childId);
+          }
+        });
+      }
+      
+      // Actualizar tarea actual si es hija
+      if (task.parent && applyParentConstraints(task)) {
+        gantt.updateTask(id);
+      }
+      
+      return true;
+    });
+
+    // Actualizar fecha final al modificar
+    gantt.attachEvent("onTaskUpdated", (id, task) => {
       if (task.start_date && task.duration) {
         const startDate = new Date(task.start_date);
         const endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + task.duration);
-        task.end_date = gantt.date.date_to_str("%d-%m-%Y %H:%i")(endDate); // Formatear la fecha
+        task.end_date = gantt.date.date_to_str("%d-%m-%Y %H:%i")(endDate);
         gantt.updateTask(id);
       }
     });
 
-    // Definir colores según el nivel de la tarea
-    gantt.templates.task_class = function (start, end, task) {
-      const level = gantt.getTask(task.id).$level; // Obtener nivel jerárquico
-      if (level === 0) return "nivel-0"; // Tarea principal
-      if (level === 1) return "nivel-1"; // Subtarea
-      if (level === 2) return "nivel-2"; // Sub-subtarea
-      return "nivel-otros"; // Niveles más profundos
+    // Estilos para niveles
+    gantt.templates.task_class = (start, end, task) => {
+      const level = gantt.getTask(task.id).$level;
+      if (level === 0) return "nivel-0";
+      if (level === 1) return "nivel-1";
+      if (level === 2) return "nivel-2";
+      return "nivel-otros";
     };
 
-    // Configurar la escala de tiempo
-    gantt.config.scale_unit = "day"; // Mostrar días
-    gantt.config.step = 1; // Un paso por día
-    gantt.config.date_scale = "%d %M"; // Formato de la escala de tiempo
-
-    // Configurar el formato de fecha para que use YYYY-MM-DD HH:mm
+    // Configuración de tiempo
+    gantt.config.scale_unit = "day";
+    gantt.config.step = 1;
+    gantt.config.date_scale = "%d %M";
     gantt.config.date_format = "%Y-%m-%d %H:%i";
 
-    // Resaltar los fines de semana
-    gantt.templates.scale_cell_class = function (date) {
+    // Estilos para fines de semana
+    gantt.templates.scale_cell_class = (date) => {
       if (date.getDay() === 0 || date.getDay() === 6) {
         return "weekend";
       }
       return "";
     };
 
-    // Definir el rango de tiempo inicial
-    const startDate = new Date(); // Fecha de inicio hoy
+    // Rango inicial
+    const startDate = new Date();
     const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 100); // Fecha de fin en 100 días
+    endDate.setDate(startDate.getDate() + 100);
 
     gantt.config.start_date = startDate;
     gantt.config.end_date = endDate;
 
-    // Inicializar el Gantt
+    // Inicializar Gantt
     gantt.init(ganttContainer.current);
 
+    // Limpieza
     return () => {
+      gantt.detachAllEvents();
       gantt.clearAll();
     };
   }, []);
 
-  // Función para exportar los datos del Gantt como JSON y descargarlos
-  const exportGanttData = async () => {
-    setLoading(true); // Activar el spinner
-    const tasks = gantt.getTaskByTime(); // Obtener todas las tareas
+  const validateData = (tasks) => {
+    if (tasks.length === 0) {
+      return {
+        valid: false,
+        message: "No hay tareas para exportar. Por favor, agregue al menos una tarea antes de continuar."
+      };
+    }
+    for (const task of tasks) {
+      if (!task.text || task.text.trim() === "") {
+        return {
+          valid: false,
+          message: `La tarea con ID ${task.id} no tiene nombre. Por favor, ingrese un nombre válido.`
+        };
+      }
 
-    // Formatear los datos según el esquema proporcionado
+      if (!task.start_date) {
+        return {
+          valid: false,
+          message: `La tarea "${task.text}" no tiene fecha de inicio. Por favor, ingrese una fecha válida.`
+        };
+      }
+
+      if (isNaN(task.duration) || task.duration <= 0) {
+        return {
+          valid: false,
+          message: `La tarea "${task.text}" tiene una duración inválida. Por favor, ingrese un número positivo.`
+        };
+      }
+
+      if (task.cantidad && isNaN(task.cantidad)) {
+        return {
+          valid: false,
+          message: `La tarea "${task.text}" tiene una cantidad inválida. Por favor, ingrese un número válido.`
+        };
+      }
+
+      if ((task.cantidad && !task.unidad) || (!task.cantidad && task.unidad)) {
+        return {
+          valid: false,
+          message: `La tarea "${task.text}" debe tener tanto cantidad como unidad, o ninguno de los dos.`
+        };
+      }
+    }
+    return { valid: true };
+  };
+
+  const exportGanttData = async () => {
+    setLoading(true);
+    const tasks = gantt.getTaskByTime();
+
+    const validation = validateData(tasks);
+    if (!validation.valid) {
+      setModalTitle("Validación requerida");
+      setModalMessage(validation.message);
+      setModalOpen(true);
+      setLoading(false);
+      return;
+    }
+
     const data = tasks.map(task => ({
       id: task.id,
       start_date: gantt.date.date_to_str("%d-%m-%Y %H:%i")(new Date(task.start_date)),
@@ -157,20 +296,22 @@ const Cronograma = () => {
     }));
 
     try {
-      const response = await agregarActividades(data); // Llamar a la función de la API
-      console.log(response); // Mostrar la respuesta en la consola
+      const response = await agregarActividades(data, id_proyecto);
+      console.log(response);
 
       if (response.tipoError === 0) {
-        navigate("/proyectos/AsignacionManoObra"); // Redirigir si no hay error
+        navigate("/proyectos/AsignacionManoObra", { state: { id_proyecto, Status } });
       } else {
-        setModalMessage("Algo ocurrió mal. Por favor, inténtelo de nuevo."); // Mensaje de error
-        setModalOpen(true); // Mostrar el modal
+        setModalTitle("Error");
+        setModalMessage("Algo ocurrió mal. Por favor, inténtelo de nuevo.");
+        setModalOpen(true);
       }
     } catch (error) {
-      setModalMessage("Ocurrió un error inesperado. Por favor, inténtelo de nuevo."); // Mensaje de error
-      setModalOpen(true); // Mostrar el modal
+      setModalTitle("Error");
+      setModalMessage("Ocurrió un error inesperado. Por favor, inténtelo de nuevo.");
+      setModalOpen(true);
     } finally {
-      setLoading(false); // Desactivar el spinner
+      setLoading(false);
     }
   };
 
@@ -183,13 +324,16 @@ const Cronograma = () => {
             <Button
               variant="contained"
               sx={{
-                borderRadius: "5px", // Bordes redondeados
+                borderRadius: "5px",
                 padding: "10px 20px",
                 backgroundColor: "#060336",
-                color: "white"
+                color: "white",
+                "&:hover": {
+                  backgroundColor: "#040225"
+                }
               }}
-              onClick={exportGanttData} // Llamar a la función de exportación
-              disabled={loading} // Deshabilitar el botón mientras se carga
+              onClick={exportGanttData}
+              disabled={loading}
             >
               {loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Siguiente"}
             </Button>
@@ -197,7 +341,6 @@ const Cronograma = () => {
         </div>
       }
     >
-      {/* Alerta de conexión a Internet */}
       {!isOnline && (
         <Alert severity="warning" sx={{ marginBottom: 2 }}>
           <AlertTitle>Advertencia</AlertTitle>
@@ -205,9 +348,13 @@ const Cronograma = () => {
         </Alert>
       )}
 
-      <div ref={ganttContainer} style={{ width: "100%", height: "400px" }} />
+      <div ref={ganttContainer} style={{ 
+        width: "100%", 
+        height: "400px",
+        minHeight: "400px",
+        overflow: "hidden"
+      }} />
 
-      {/* Modal para mostrar mensajes de error */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -228,18 +375,28 @@ const Cronograma = () => {
           }}
         >
           <Typography id="modal-modal-title" variant="h6" component="h2">
-            Error
+            {modalTitle}
           </Typography>
           <Typography id="modal-modal-description" sx={{ mt: 2 }}>
             {modalMessage}
           </Typography>
-          <Button
-            variant="contained"
-            sx={{ mt: 2, backgroundColor: "#060336", color: "white" }}
-            onClick={() => setModalOpen(false)}
-          >
-            Cerrar
-          </Button>
+          <Box sx={{
+            display: "flex",
+            justifyContent: "flex-end",
+            pt: 2
+          }}>
+            <Button
+              variant="contained"
+              sx={{ 
+                backgroundColor: "#060336", 
+                color: "white",
+                "&:hover": { backgroundColor: "#040225" }
+              }}
+              onClick={() => setModalOpen(false)}
+            >
+              Cerrar
+            </Button>
+          </Box>
         </Box>
       </Modal>
     </MainCard>
