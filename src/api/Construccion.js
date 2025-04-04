@@ -15,6 +15,20 @@ if(message){
     }
 };
 
+export const CrearProyecto = async (DatosProyecto) => {
+  try{
+    const response = await axios.post(`${API_URL}/CrearProyecto`, DatosProyecto, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener actividades:', error);
+    throw error;
+  }
+}
+
 export const crearNumero = async (DatosNumero) => {
   try{
     Obtenermessage();
@@ -40,9 +54,33 @@ export const agregarActividades = async (actividades, id_proyecto) => {
       idProyecto: id_proyecto,
       actividades: actividades,
     };
-
     // Realizar la petición POST usando axios
     const response = await axios.post(`${API_URL}/AgregarActividades`, requestBody, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Retornar la respuesta de la API
+    return response.data;
+  } catch (error) {
+    // Manejar errores
+    console.error('Error al agregar actividades:', error);
+    throw error;
+  }
+};
+
+export const editarActividades = async (actividades, id_proyecto) => {
+  try {
+    
+    // Estructura del cuerpo de la solicitud
+    const requestBody = {
+      idProyecto: id_proyecto,
+      actividades: actividades,
+    };
+    console.log(requestBody);
+    // Realizar la petición POST usando axios
+    const response = await axios.post(`${API_URL}/EditarActividades`, requestBody, {
       headers: {
         'Content-Type': 'application/json',
       },
@@ -84,6 +122,27 @@ export const agregarEmpleados = async (empleados, id_proyecto) => {
     };
     console.log(requestBody);
     const response = await axios.post(`${API_URL}/AgregarEmpleados`, requestBody,{
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+
+  }catch(error){
+    console.error('Error al agregar empleados:', error);
+    throw error;
+  }
+}
+
+export const editarEmpleados = async (empleados, id_proyecto) => {
+  try{
+    const requestBody = {
+      idProyecto: id_proyecto,
+      groups: empleados.groups,
+      items: empleados.items,
+    };
+    console.log(requestBody);
+    const response = await axios.post(`${API_URL}/EditarEmpleados`, requestBody,{
       headers:{
         'Content-Type': 'application/json',
       },
@@ -356,3 +415,4 @@ export const ObtenerMaterialesPorId = async (materiales) => {
     throw error;
   }
 }
+

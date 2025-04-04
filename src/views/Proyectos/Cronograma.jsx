@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useLocation} from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "dhtmlx-gantt/codebase/dhtmlxgantt.css";
 import gantt from "dhtmlx-gantt";
 import MainCard from "ui-component/cards/MainCard";
 import { Button, CircularProgress, Modal, Box, Typography, Alert, AlertTitle } from "@mui/material";
 import "../../assets/css/cronograma.css";
-import { agregarActividades } from "../../api/Construccion";
+import { agregarActividades, editarActividades, obtenerActividades } from "../../api/Construccion";
 
 const Cronograma = () => {
   const ganttContainer = useRef(null);
@@ -19,8 +19,40 @@ const Cronograma = () => {
   const location = useLocation();
   const { id_proyecto, Status } = location.state || {};
 
+  // Función para transformar los datos al formato esperado por DHTMLX Gantt
+  const transformData = async () => {
+    try {
+      const tasks = await obtenerActividades(id_proyecto);
+
+      if (!tasks || tasks.length === 0) {
+        console.warn("No se recibieron tareas desde la API.");
+        return { data: [], links: [] };
+      }
+
+      return {
+        data: tasks.map((task) => ({
+          ...task,
+          id: Number(task.id),
+          parent: task.parent === "0" ? 0 : Number(task.parent),
+          start_date: task.start_date.replace("T", " "),
+          end_date: task.end_date.replace("T", " ")
+        })),
+        links: []
+      };
+    } catch (error) {
+      console.error("Error al transformar los datos:", error);
+      return { data: [], links: [] };
+    }
+  };
+
   useEffect(() => {
     // Configuración regional
+    const today = new Date();
+const endDate = new Date(today);
+endDate.setDate(today.getDate() + 100); // 100 días después de hoy
+
+gantt.config.start_date = today;
+gantt.config.end_date = endDate;
     gantt.locale = {
       date: {
         month_full: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
@@ -102,13 +134,11 @@ const Cronograma = () => {
       
       let changed = false;
       
-      // Restricción de fecha inicio
       if (taskStart < parentStart) {
         task.start_date = new Date(parentStart);
         changed = true;
       }
       
-      // Restricción de fecha fin
       const maxEnd = new Date(Math.min(taskEnd.getTime(), parentEnd.getTime()));
       const maxDuration = Math.floor((maxEnd - taskStart) / (1000 * 60 * 60 * 24));
       
@@ -153,7 +183,6 @@ const Cronograma = () => {
       
       const task = gantt.getTask(id);
       
-      // Actualizar tareas hijas si es padre
       if (gantt.hasChild(id)) {
         const children = gantt.getChildren(id);
         children.forEach(childId => {
@@ -164,7 +193,6 @@ const Cronograma = () => {
         });
       }
       
-      // Actualizar tarea actual si es hija
       if (task.parent && applyParentConstraints(task)) {
         gantt.updateTask(id);
       }
@@ -206,23 +234,34 @@ const Cronograma = () => {
       return "";
     };
 
-    // Rango inicial
-    const startDate = new Date();
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 100);
-
-    gantt.config.start_date = startDate;
-    gantt.config.end_date = endDate;
-
     // Inicializar Gantt
     gantt.init(ganttContainer.current);
+
+    // Cargar datos existentes si Status es true
+    const loadInitialData = async () => {
+      if (Status && id_proyecto) {
+        try {
+          setLoading(true);
+          const formattedData = await transformData();
+          gantt.parse(formattedData);
+        } catch (error) {
+          setModalTitle("Error");
+          setModalMessage("No se pudieron cargar las actividades existentes.");
+          setModalOpen(true);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadInitialData();
 
     // Limpieza
     return () => {
       gantt.detachAllEvents();
       gantt.clearAll();
     };
-  }, []);
+  }, [Status, id_proyecto]);
 
   const validateData = (tasks) => {
     if (tasks.length === 0) {
@@ -288,23 +327,37 @@ const Cronograma = () => {
       start_date: gantt.date.date_to_str("%d-%m-%Y %H:%i")(new Date(task.start_date)),
       text: task.text,
       duration: task.duration,
-      parent: task.parent || "0",
+      parent: task.parent ? String(task.parent) : "0",
       end_date: gantt.date.date_to_str("%d-%m-%Y %H:%i")(new Date(task.end_date)),
       progress: task.progress || 0,
-      cantidad: task.cantidad || "",
+      cantidad: task.cantidad ? String(task.cantidad) : "",
       unidad: task.unidad || ""
     }));
 
     try {
-      const response = await agregarActividades(data, id_proyecto);
-      console.log(response);
-
-      if (response.tipoError === 0) {
-        navigate("/proyectos/AsignacionManoObra", { state: { id_proyecto, Status } });
+      let response;
+      
+      if (Status) {
+        console.log("Editando actividades:", data);
+        response = await editarActividades(data, id_proyecto);
+        if (response.tipoError === 0) {
+          navigate(-1);
+        } else {
+          setModalTitle("Error");
+          setModalMessage("Algo ocurrió mal al editar las actividades. Por favor, inténtelo de nuevo.");
+          setModalOpen(true);
+          console.error("Error al editar actividades:", response);
+        }
       } else {
-        setModalTitle("Error");
-        setModalMessage("Algo ocurrió mal. Por favor, inténtelo de nuevo.");
-        setModalOpen(true);
+        console.log("Agregando actividades:", data);
+        response = await agregarActividades(data, id_proyecto);
+        if (response.tipoError === 0) {
+          navigate("/proyectos/AsignacionManoObra", { state: { id_proyecto, Status } });
+        } else {
+          setModalTitle("Error");
+          setModalMessage("Algo ocurrió mal al agregar las actividades. Por favor, inténtelo de nuevo.");
+          setModalOpen(true);
+        }
       }
     } catch (error) {
       setModalTitle("Error");
