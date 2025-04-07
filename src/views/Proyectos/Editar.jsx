@@ -77,8 +77,8 @@ const EditTable = () => {
       id_proyecto,
       // Para CPC enviamos datos adicionales y el estado real (si existe)
       ...(route === '/proyectos/cpc' ? { 
+        id: idNumero,
         nombreActividad, 
-        idNumero,
         Status: projectStatus?.cpc ?? true // Envía true si no hay datos
       } : { 
         // Para otras rutas enviamos el estado del item

@@ -29,6 +29,37 @@ export const CrearProyecto = async (DatosProyecto) => {
   }
 }
 
+export const getProyectoEdit = async (id_numero) => {
+  try {
+    const requestBody = {
+      idNumero: id_numero,
+    };
+    const response = await axios.post(`${API_URL}/GetProyectoEdit`, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener CPC:", error);
+    throw error;
+  }
+}
+
+export const editarProyecto = async (DatosProyecto) => {
+  try{
+    const response = await axios.post(`${API_URL}/EditarProyecto`, DatosProyecto, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    return response.data;
+  }catch(error){
+    console.error('Error al obtener actividades:', error);
+    throw error;
+  }
+}
+
 export const crearNumero = async (DatosNumero) => {
   try{
     Obtenermessage();
@@ -163,6 +194,43 @@ export const agregarEquipo = async (equipo, id_proyecto) => {
       items: equipo.items,
     };
     const response = await axios.post(`${API_URL}/AgregarEquipo`, requestBody,{
+      headers:{
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.data;
+
+  }catch(error){
+    console.error('Error al agregar empleados:', error);
+    throw error;
+  }
+}
+
+export const getEquipoEdit = async (id_proyecto) => {
+  try {
+    const requestBody = {
+      id: id_proyecto,
+    };
+    const response = await axios.post(`${API_URL}/GetEquipoEdit`, requestBody, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error al obtener CPC:", error);
+    throw error;
+  }
+}
+
+export const editarEquipo = async (equipo, id_proyecto) => {
+  try{
+    const requestBody = {
+      idProyecto: id_proyecto,
+      groups: equipo.groups,
+      items: equipo.items,
+    };
+    const response = await axios.post(`${API_URL}/EditarEquipo`, requestBody,{
       headers:{
         'Content-Type': 'application/json',
       },

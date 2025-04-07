@@ -3,10 +3,10 @@ import { useNavigate, useLocation } from "react-router-dom"; // Importa useNavig
 import ManoObraGantt from "./Gantt-Charts/ManoObraGantt";
 import MainCard from "ui-component/cards/MainCard";
 import Equipo from "./Gantt-Charts/CronogramaEquipo";
-import { 
-  Button, 
-  CircularProgress, 
-  Alert, 
+import {
+  Button,
+  CircularProgress,
+  Alert,
   AlertTitle,
   Dialog,
   DialogTitle,
@@ -15,7 +15,7 @@ import {
   DialogActions,
   Typography
 } from "@mui/material";
-import { agregarEquipo } from "../../api/Construccion";
+import { agregarEquipo, getEquipoEdit, editarEquipo } from "../../api/Construccion";
 
 const MaterialesGantt = () => {
   const cronogramaRef = useRef(null);
@@ -24,23 +24,43 @@ const MaterialesGantt = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine); // Estado para verificar la conexión a Internet
   const [openModal, setOpenModal] = useState(false); // Estado para controlar el modal
   const [modalMessage, setModalMessage] = useState(""); // Mensaje del modal
+  const [ganttData, setGanttData] = useState(null);
   const navigate = useNavigate(); // Obtén la función navigate para la navegación
-    const location = useLocation();
-    const { id_proyecto, Status } = location.state || {};
+  const location = useLocation();
+  const { id_proyecto, Status } = location.state || {};
 
   // Verificar la conexión a Internet
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+      const handleOnline = () => setIsOnline(true);
+      const handleOffline = () => setIsOnline(false);
+  
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+  
+      // Verificar el Status al montar el componente
+      const fetchInitialData = async () => {
+        if (Status) {
+          try {
+            setIsLoading(true);
+            const data = await getEquipoEdit(id_proyecto);
+            setGanttData(data);
+          } catch (error) {
+            console.error('Error al obtener datos del Gantt:', error);
+            setModalMessage("Error al cargar los datos iniciales");
+            setOpenModal(true);
+          } finally {
+            setIsLoading(false);
+          }
+        }
+      };
+  
+      fetchInitialData();
+  
+      return () => {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      };
+    }, [Status, id_proyecto]);
 
   const toggleGantt = () => {
     setShowGantt(!showGantt);
@@ -52,6 +72,7 @@ const MaterialesGantt = () => {
 
   const guardarDatos = async () => {
     if (cronogramaRef.current) {
+      let response;
       setIsLoading(true);
       try {
         const datos = cronogramaRef.current.exportData();
@@ -62,11 +83,22 @@ const MaterialesGantt = () => {
           setIsLoading(false);
           return;
         }
-        const response = await agregarEquipo(datos, id_proyecto);
-        if (response.tipoError === 0) {
-          navigate("/proyectos/DescripcionMaterial",{state: {id_proyecto, Status}});
+
+        if (Status) {
+          response = await editarEquipo(datos, id_proyecto);
+          if (response.tipoError === 0) {
+            navigate(-1);
+          } else {
+            setModalMessage(response.mensaje || "Error al enviar los datos");
+            setOpenModal(true);
+          }
         } else {
-          console.error("Error al enviar los datos:", response.mensaje);
+          response = await agregarEquipo(datos, id_proyecto);
+          if (response.tipoError === 0) {
+            navigate("/proyectos/DescripcionMaterial", { state: { id_proyecto, Status } });
+          } else {
+            console.error("Error al enviar los datos:", response.mensaje);
+          }
         }
       } catch (error) {
         setModalMessage("Error al procesar la solicitud. Por favor intente nuevamente.");
@@ -94,35 +126,35 @@ const MaterialesGantt = () => {
       </Button>
 
       {/* Botón para redireccionar a /proyectos/descripcionmaterial */}
-      <Button variant="contained" 
-              color="primary" 
-              onClick={guardarDatos}
-              disabled={isLoading}
-              startIcon={isLoading ? <CircularProgress size={20} /> : null}>
+      <Button variant="contained"
+        color="primary"
+        onClick={guardarDatos}
+        disabled={isLoading}
+        startIcon={isLoading ? <CircularProgress size={20} /> : null}>
         Siguiente
       </Button>
 
       {/* Modal para mostrar mensajes */}
-            <Dialog
-              open={openModal}
-              onClose={handleCloseModal}
-              aria-labelledby="alert-dialog-title"
-              aria-describedby="alert-dialog-description"
-            >
-               <DialogTitle id="alert-dialog-title">
-                <Typography variant="h3" component="h3">Atención</Typography>
-              </DialogTitle>
-              <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                  {modalMessage}
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseModal} color="primary" autoFocus>
-                  Aceptar
-                </Button>
-              </DialogActions>
-            </Dialog>
+      <Dialog
+        open={openModal}
+        onClose={handleCloseModal}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          <Typography variant="h3" component="h3">Atención</Typography>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            {modalMessage}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseModal} color="primary" autoFocus>
+            Aceptar
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Renderiza ManoObraGantt solo si showGantt es true */}
       {showGantt && <ManoObraGantt idProyecto={id_proyecto} />}
@@ -130,7 +162,7 @@ const MaterialesGantt = () => {
       <br />
 
       {/* Equipo se muestra siempre */}
-      <Equipo ref={cronogramaRef}/>
+      <Equipo ref={cronogramaRef} initialData={Status ? ganttData : null}/>
     </MainCard>
   );
 };

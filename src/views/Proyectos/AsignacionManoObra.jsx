@@ -83,6 +83,7 @@ const AsignacionManoObra = () => {
           return;
         }
 
+        
         if(Status) {
           response = await editarEmpleados(datos, id_proyecto);
           if (response.tipoError === 0) {

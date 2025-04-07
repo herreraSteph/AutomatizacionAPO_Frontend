@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Autocomplete from '@mui/material/Autocomplete'; 
-import { Typography, TextField, Grid, Box, FormControl, Select, MenuItem, InputLabel, ToggleButton, ToggleButtonGroup, Button, Alert, AlertTitle,
-         Checkbox, FormGroup, CircularProgress, Radio, RadioGroup, FormControlLabel } from "@mui/material";
+import Autocomplete from '@mui/material/Autocomplete';
+import {
+  Typography, TextField, Grid, Box, FormControl, Select, MenuItem, InputLabel, ToggleButton, ToggleButtonGroup, Button, Alert, AlertTitle,
+  Checkbox, FormGroup, CircularProgress, Radio, RadioGroup, FormControlLabel
+} from "@mui/material";
 import { Engineering, Build, PrecisionManufacturing, Handyman, LocalAtm, Support } from "@mui/icons-material";
 import MainCard from "ui-component/cards/MainCard";
-import { CrearProyecto } from "../../api/Construccion";
+import { CrearProyecto, getProyectoEdit, editarProyecto } from "../../api/Construccion";
 
 // Importar datos de los combobox
 import areas from "../../data/CPC/areas.json";
@@ -35,11 +37,14 @@ const CPC = () => {
   const [loading, setLoading] = useState(false);
   const [errorAlert, setErrorAlert] = useState(null);
   const [imagen, setImagen] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [imagenOriginal, setImagenOriginal] = useState(null);
 
   // Router hooks
   const navigate = useNavigate();
   const location = useLocation();
-  const { id, nombreActividad } = location.state || {};
+  const { id_proyecto, id, nombreActividad, Status } = location.state || {};
 
   // Efecto para manejar conexión
   useEffect(() => {
@@ -54,6 +59,57 @@ const CPC = () => {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
+
+  // Efecto para cargar datos de edición
+  useEffect(() => {
+    const loadEditData = async () => {
+      if (Status && id_proyecto && !initialDataLoaded) {
+        setIsEditing(true);
+        setLoading(true);
+        try {
+          const response = await getProyectoEdit(id);
+          const data = response;
+
+          // Setear los valores del formulario con los datos obtenidos
+          if (data.proyectoEditDto) {
+            const proyecto = data.proyectoEditDto;
+            setTipoAcabado(proyecto.tipo_acabados || "");
+            setDescripcion(proyecto.descripcion || "");
+            setPlacement(proyecto.area || "");
+            setEdificio(proyecto.edificio || "");
+            setEquipoReferencia(proyecto.equipo_referencia || "");
+            setUbicacion(proyecto.ubicacion || "");
+            setImagen(proyecto.enlace_documento || null);
+            setImagenOriginal(proyecto.enlace_documento || null);
+          }
+
+          if (data.diseniosEditDtos) {
+            const diseños = data.diseniosEditDtos.map(item => item.detalles_diseno);
+            setSelected(diseños);
+          }
+
+          if (data.condicionSeguridadDtos) {
+            const seguridad = data.condicionSeguridadDtos.map(item => item.detalles_CondicionSeguridad);
+            setSeguridadSeleccionada(seguridad);
+          }
+
+          if (data.tipoDocumentosDtos) {
+            const documentos = data.tipoDocumentosDtos.map(item => item.detalles_TiposDocumentos);
+            setDocumentosAnexados(documentos);
+          }
+
+          setInitialDataLoaded(true);
+        } catch (error) {
+          console.error("Error al cargar datos para edición:", error);
+          setErrorAlert("Error al cargar los datos del proyecto para edición.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadEditData();
+  }, [Status, id_proyecto, initialDataLoaded]);
 
   // Manejadores de eventos
   const handleSelection = (event, newSelection) => {
@@ -79,7 +135,7 @@ const CPC = () => {
   const handleSeguridadChange = (event) => {
     const value = event.target.value;
     setSeguridadSeleccionada(prev =>
-      prev.includes(value) 
+      prev.includes(value)
         ? prev.filter(item => item !== value)
         : [...prev, value]
     );
@@ -88,7 +144,7 @@ const CPC = () => {
   const handleDocumentosAnexadosChange = (event) => {
     const value = event.target.value;
     setDocumentosAnexados(prev =>
-      prev.includes(value) 
+      prev.includes(value)
         ? prev.filter(item => item !== value)
         : [...prev, value]
     );
@@ -102,15 +158,8 @@ const CPC = () => {
     setDescripcion(event.target.value);
   };
 
-  const handleFileUpload = (event) => {
-    const uploadedFiles = Array.from(event.target.files);
-    setFiles([...files, ...uploadedFiles]);
-  };
-
-  const handleRemoveFile = (index) => {
-    const newFiles = [...files];
-    newFiles.splice(index, 1);
-    setFiles(newFiles);
+  const handleRemoveImage = () => {
+    setImagen(null);
   };
 
   const handleImageUpload = (event) => {
@@ -176,22 +225,39 @@ const CPC = () => {
       condicionSeguridad: seguridadSeleccionada,
       disenios: selected,
       tiposDocumentos: documentosAnexados,
-      documento: imagen // Solo el string base64 sin prefijo
+      documento: isEditing
+        ? (imagen === imagenOriginal ? null : imagen) // Lógica clave para el campo documento
+        : imagen
     };
 
+    // Si estamos editando, agregamos el id_proyecto
+    if (isEditing) {
+      datosProyecto.id_proyecto = id_proyecto;
+    }
+    console.log("Datos del proyecto:", datosProyecto);
     try {
-      const response = await CrearProyecto(datosProyecto);
-      
-      if (response.tipoError != 1) {
-        const idproyecto = Number(response.mensaje); 
-        navigate('/proyectos/cronograma', {state: {id_proyecto: idproyecto, Status: false}});
+      let response;
+      if (isEditing) {
+        response = await editarProyecto(datosProyecto);
       } else {
-        console.error("Error al crear el proyecto:", response.mensaje);
-        setErrorAlert("Error al crear el proyecto. Por favor intente nuevamente.");
+        response = await CrearProyecto(datosProyecto);
+      }
+
+      if (response.tipoError != 1) {
+        if (isEditing) {
+          navigate(-1);
+        } else {
+          const idproyecto = isEditing ? id_proyecto : Number(response.mensaje);
+          navigate('/proyectos/cronograma', { state: { id_proyecto: idproyecto, Status: isEditing } });
+        }
+
+      } else {
+        console.error(`Error al ${isEditing ? 'editar' : 'crear'} el proyecto:`, response.mensaje);
+        setErrorAlert(`Error al ${isEditing ? 'editar' : 'crear'} el proyecto. Por favor intente nuevamente.`);
       }
     } catch (error) {
-      console.error("Error al crear el proyecto:", error);
-      setErrorAlert("Error al crear el proyecto. Por favor intente nuevamente.");
+      console.error(`Error al ${isEditing ? 'editar' : 'crear'} el proyecto:`, error);
+      setErrorAlert(`Error al ${isEditing ? 'editar' : 'crear'} el proyecto. Por favor intente nuevamente.`);
     } finally {
       setLoading(false);
     }
@@ -213,7 +279,7 @@ const CPC = () => {
         </Alert>
       )}
 
-      <MainCard title="Creación de CPC" sx={{ textAlign: "center" }}>
+      <MainCard title={isEditing ? "Edición de CPC" : "Creación de CPC"} sx={{ textAlign: "center" }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={6}>
             <FormControl fullWidth variant="outlined">
@@ -222,6 +288,7 @@ const CPC = () => {
                 label="Nom proyecto"
                 variant="outlined"
                 sx={{ backgroundColor: "#FFFFF" }}
+                disabled={isEditing}
               />
             </FormControl>
           </Grid>
@@ -252,7 +319,7 @@ const CPC = () => {
           <Grid item xs={12} display="flex" justifyContent="flex-end">
             <FormControl>
               <Typography variant="subtitle1" sx={{ textAlign: "center", mb: 1 }}>
-                Detalles de Diseño y Materiales en Anexo  
+                Detalles de Diseño y Materiales en Anexo
               </Typography>
               <ToggleButtonGroup
                 value={selected}
@@ -395,7 +462,7 @@ const CPC = () => {
                     <FormControlLabel
                       key={condicion}
                       control={
-                        <Checkbox 
+                        <Checkbox
                           checked={seguridadSeleccionada.includes(condicion)}
                           onChange={handleSeguridadChange}
                           value={condicion}
@@ -424,7 +491,7 @@ const CPC = () => {
                     <FormControlLabel
                       key={documento}
                       control={
-                        <Checkbox 
+                        <Checkbox
                           checked={documentosAnexados.includes(documento)}
                           onChange={handleDocumentosAnexadosChange}
                           value={documento}
@@ -440,7 +507,6 @@ const CPC = () => {
         </MainCard>
       </Grid>
 
-      {/* Card para subir imagen */}
       <MainCard title="Subir Imagen" sx={{ mt: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -452,20 +518,30 @@ const CPC = () => {
               onChange={handleImageUpload}
             />
             <label htmlFor="contained-button-file">
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 component="span"
-                sx={{ backgroundColor: "#060336", color: "#fff" }}
+                sx={{ backgroundColor: "#060336", color: "#fff", mr: 2 }}
               >
-                Seleccionar Imagen
+                {imagen ? "Cambiar Imagen" : "Seleccionar Imagen"}
               </Button>
             </label>
             {imagen && (
+              <Button
+                variant="contained"
+                color="error"
+                onClick={handleRemoveImage}
+                sx={{ color: "#fff" }}
+              >
+                Eliminar Imagen
+              </Button>
+            )}
+            {imagen && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle1">Vista previa:</Typography>
-                <img 
-                  src={`data:image/jpeg;base64,${imagen}`} 
-                  alt="Preview" 
+                <img
+                  src={imagen.includes('http') ? imagen : `data:image/jpeg;base64,${imagen}`}
+                  alt="Preview"
                   style={{ maxWidth: '100%', maxHeight: '300px', marginTop: '10px' }}
                 />
               </Box>
@@ -475,9 +551,9 @@ const CPC = () => {
       </MainCard>
 
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "20px", width: "100%" }}>
-        <Button 
-          variant="contained" 
-          onClick={handleSave} 
+        <Button
+          variant="contained"
+          onClick={handleSave}
           sx={{ backgroundColor: "#060336", width: "15%" }}
           disabled={loading}
         >
