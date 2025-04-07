@@ -377,5 +377,4 @@ const DescargaCPC = () => {
     </div>
   );
 };
-
 export default DescargaCPC;
