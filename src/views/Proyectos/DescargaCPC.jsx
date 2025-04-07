@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -38,6 +39,7 @@ const DescargaCPC = () => {
     representante: "",
     prioridad: "",
   });
+  const navigate = useNavigate();
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [currentFilter, setCurrentFilter] = useState("");
   const [loading, setLoading] = useState(false);
@@ -74,6 +76,7 @@ const DescargaCPC = () => {
         const datosCPC = await ObtenerCPC(true);
 
         const datosTransformados = datosCPC.map((item) => ({
+          id_numero: item.id_numero,
           id: item.id,
           nombreActividad: item.nombre || "N/A",
           nombre: item.nombre_proyecto || "N/A",
@@ -142,10 +145,10 @@ const DescargaCPC = () => {
     }
   };
 
-  const handleEditar = (id) => {
-    // Implementa tu lógica de edición aquí
-    console.log("Editar elemento con ID:", id);
-    alert(`Modo edición para el ID: ${id}`);
+  const handleEditar = (idNumero, nombreActividad, id_proyecto) => {
+    navigate("/proyectos/Editar", {
+      state: { idNumero, nombreActividad, id_proyecto},
+    });
   };
 
   const handleFilterClick = (event, filterName) => {
@@ -311,7 +314,7 @@ const DescargaCPC = () => {
                       </TableCell>
                       <TableCell>
                         <IconButton
-                          onClick={() => handleEditar(row.id)}
+                          onClick={() => handleEditar(row.id_numero, row.nombreActividad, row.id)}
                           sx={{ color: "#060336" }}
                           aria-label="Editar"
                         >

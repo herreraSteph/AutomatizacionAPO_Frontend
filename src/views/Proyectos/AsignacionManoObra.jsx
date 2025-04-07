@@ -15,7 +15,7 @@ import {
   DialogActions,
   Typography
 } from "@mui/material";
-import { agregarEmpleados, GetManoObraEdit } from "../../api/Construccion";
+import { agregarEmpleados, GetManoObraEdit, editarEmpleados } from "../../api/Construccion";
 
 const AsignacionManoObra = () => {
   const cronogramaRef = useRef(null);
@@ -72,6 +72,7 @@ const AsignacionManoObra = () => {
   const obtenerDatosCronograma = async () => {
     if (cronogramaRef.current) {
       setIsLoading(true);
+      let response;
       try {
         const datos = cronogramaRef.current.exportData();
         
@@ -82,13 +83,26 @@ const AsignacionManoObra = () => {
           return;
         }
 
-        const response = await agregarEmpleados(datos, id_proyecto);
-        if (response.tipoError === 0) {
-          navigate("/proyectos/equipo", {state: {id_proyecto, Status}});
-        } else {
-          setModalMessage(response.mensaje || "Error al enviar los datos");
-          setOpenModal(true);
+        
+        if(Status) {
+          response = await editarEmpleados(datos, id_proyecto);
+          if (response.tipoError === 0) {
+            navigate(-1);
+          } else {
+            setModalMessage(response.mensaje || "Error al enviar los datos");
+            setOpenModal(true);
+          }
+        }else{
+          response = await agregarEmpleados(datos, id_proyecto);
+          if (response.tipoError === 0) {
+            navigate("/proyectos/equipo", {state: {id_proyecto, Status}});
+          } else {
+            setModalMessage(response.mensaje || "Error al enviar los datos");
+            setOpenModal(true);
+          }
         }
+        
+        
       } catch (error) {
         setModalMessage("Error al procesar la solicitud. Por favor intente nuevamente.");
         setOpenModal(true);

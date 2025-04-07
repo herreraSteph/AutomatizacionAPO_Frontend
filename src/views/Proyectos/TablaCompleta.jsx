@@ -109,7 +109,7 @@ const TablaCompleta = () => {
       });
     }else{
       navigate("/proyectos/CPC", {
-        state: { id, nombreActividad },
+        state: { id, nombreActividad, Status: false },
       });
     }
   };

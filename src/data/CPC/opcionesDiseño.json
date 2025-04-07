@@ -1,0 +1,26 @@
+[
+    {
+      "label": "Ingeniería",
+      "icon": "Engineering"
+    },
+    {
+      "label": "Andamio",
+      "icon": "Build"
+    },
+    {
+      "label": "Suministro",
+      "icon": "PrecisionManufacturing"
+    },
+    {
+      "label": "Instalación",
+      "icon": "Handyman"
+    },
+    {
+      "label": "Libranza",
+      "icon": "LocalAtm"
+    },
+    {
+      "label": "Soportería",
+      "icon": "Support"
+    }
+  ]

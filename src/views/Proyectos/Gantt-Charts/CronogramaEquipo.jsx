@@ -19,13 +19,13 @@ const modalStyle = {
 const generateRandomId = () => Math.floor(1000000 + Math.random() * 9000000);
 
 const CronogramaEquipo = React.forwardRef((props, ref) => {
-  const [groups, setGroups] = useState([
-    {
+  const initialGroupsState = [{
       id: generateRandomId(),
       title: "Encabezado",
       isHeader: true,
-    },
-  ]);
+    }];
+  
+    const [groups, setGroups] = useState(initialGroupsState);
   const [items, setItems] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [inputValue, setInputValue] = useState("");
@@ -48,6 +48,87 @@ const CronogramaEquipo = React.forwardRef((props, ref) => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [selectedItemId]);
+
+  const calcularJornadas = (titulo, startTime, endTime, currentGroups, groupId) => {
+      const grupo = currentGroups.find(g => g.id === groupId);
+      if (!grupo || !grupo.hrsXJor) return {
+        jornadasNormales: 0,
+        horasNormales: 0,
+        jornadasExtras: 0,
+        horasExtras: 0
+      };
+  
+      const tituloNum = parseFloat(titulo) || 0;
+      const duracionDias = moment(endTime).diff(moment(startTime), "days");
+      const numeroJornadas = tituloNum * duracionDias;
+  
+      let jornadasExtras = 0;
+      let horasExtras = 0;
+  
+      for (let i = 0; i < duracionDias; i++) {
+        const fecha = moment(startTime).add(i, "days");
+        if (fecha.day() === 0 || fecha.day() === 6) {
+          jornadasExtras += tituloNum;
+          horasExtras += tituloNum * grupo.hrsXJor;
+        }
+      }
+  
+      return {
+        jornadasNormales: numeroJornadas - jornadasExtras,
+        horasNormales: (numeroJornadas - jornadasExtras) * grupo.hrsXJor,
+        jornadasExtras,
+        horasExtras,
+      };
+    };
+
+  useEffect(() => {
+    if(props.initialData){
+      const { equipoEditDtos, itemEditDtos } = props.initialData;
+
+      const baseGroups = equipoEditDtos.map(g => ({
+        id: g.id_group,
+        title: g.equipo,
+        hrsXJor: parseFloat(g.hrs_x_jor),
+        jor: 0,
+        hrsNor: 0,
+        jorExt: 0,
+        hrsExt: 0,
+      }));
+
+      const mappedItems = itemEditDtos.map(i => ({
+        id: i.id,
+        group: i.group_id,
+        title: i.title,
+        start_time: i.start_time,
+        end_time: i.end_time
+      }));
+
+      const groupsWithCalculations = baseGroups.map(group => {
+        const groupItems = mappedItems.filter(item => item.group === group.id);
+        let totals = { jor: 0, hrsNor: 0, jorExt: 0, hrsExt: 0 };
+
+        groupItems.forEach(item => {
+          const calculo = calcularJornadas(
+            item.title,
+            item.start_time,
+            item.end_time,
+            [...initialGroupsState, ...baseGroups],
+            group.id
+          );
+          
+          totals.jor += calculo.jornadasNormales;
+          totals.hrsNor += parseFloat(calculo.horasNormales.toFixed(2));
+          totals.jorExt += calculo.jornadasExtras;
+          totals.hrsExt += parseFloat(calculo.horasExtras.toFixed(2));
+        });
+
+        return { ...group, ...totals };
+      });
+
+      setGroups([...initialGroupsState, ...groupsWithCalculations]);
+      setItems(mappedItems);
+    }
+  }, [props.initialData]);
 
   const esFinDeSemana = (fecha) => {
     const dia = moment(fecha).day();
